@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <input type="text" id="msgInput" placeholder="输入消息">
+    <button onclick="sendMsg()">发送</button>
+    <div id="log"></div>
+
+    <script>
+        // 连接本地WebSocket服务
+        const ws = new WebSocket('ws://localhost:8765');
+        
+        // 连接成功
+        ws.onopen = () => {
+            log('已连接Python WebSocket服务');
+        };
+        
+        // 接收Python消息
+        ws.onmessage = (event) => {
+            log(`Python回复：${event.data}`);
+        };
+        
+        // 发送消息到Python
+        function sendMsg() {
+            const msg = document.getElementById('msgInput').value;
+            ws.send(msg);
+            log(`发送：${msg}`);
+            document.getElementById('msgInput').value = '';
+        }
+        
+        function log(text) {
+            document.getElementById('log').innerHTML += `<p>${text}</p>`;
+        }
+    </script>
+</body>
+</html>
