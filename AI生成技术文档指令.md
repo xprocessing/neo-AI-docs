@@ -17,3 +17,7 @@
 5.对springboot 行业常用框架都要分章节进行介绍。
 
 #生成xx技术手册
+
+# 生成脑图
+
+给我一份java springboot 从入门到精通的学习路线 脑图，给我Markdown结构。
