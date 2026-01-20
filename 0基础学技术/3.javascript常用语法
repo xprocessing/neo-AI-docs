@@ -1,0 +1,266 @@
+你想了解JavaScript的常用语法，我会按**基础数据类型与变量、流程控制语句、函数定义与使用、数组与对象操作、DOM交互基础、常用内置方法**这几大类梳理，每个知识点包含用途说明、语法示例，覆盖日常JS开发90%以上的核心场景，同时兼顾入门易懂性和实用性。
+
+### 一、 基础数据类型与变量（JS的基石，存储和表示数据）
+#### 1. 变量声明（3种常用方式）
+JavaScript有3种核心变量声明方式，各自有明确的使用场景：
+- `let`：声明可变变量（可修改、可重新赋值），块级作用域（推荐日常使用）
+- `const`：声明常量（不可重新赋值，声明时必须初始化），块级作用域（用于存储不改变的数据）
+- `var`：早期声明方式，函数级作用域（存在变量提升等问题，不推荐优先使用）
+
+#### 2. 常用基础数据类型
+分为**基本数据类型**和**引用数据类型**，核心常用如下：
+- 基本数据类型：`string`（字符串）、`number`（数字）、`boolean`（布尔值`true/false`）、`undefined`（未定义）
+- 引用数据类型：`object`（对象）、`array`（数组）、`function`（函数）
+
+**示例**：
+```javascript
+// 变量声明与基本数据类型
+let userName = "张三"; // string 类型
+const age = 25; // number 类型
+let isAdult = true; // boolean 类型
+let unassignedVar; // undefined 类型
+
+// 引用数据类型（简单示例，后续详细展开）
+let userInfo = { name: "李四", gender: "男" }; // object 类型
+let hobbyList = ["篮球", "音乐", "阅读"]; // array 类型
+```
+
+### 二、 流程控制语句（控制代码执行顺序，实现逻辑判断与循环）
+#### 1. 条件判断语句（根据条件执行不同代码）
+- `if...else`：基础条件判断，支持多层嵌套
+- `if...else if...else`：多条件分支判断
+- `switch`：多值匹配判断，适合条件值固定的场景
+
+**示例**：
+```javascript
+// if...else if...else
+let score = 88;
+let grade;
+if (score >= 90) {
+  grade = "优秀";
+} else if (score >= 80) {
+  grade = "良好";
+} else if (score >= 60) {
+  grade = "及格";
+} else {
+  grade = "不及格";
+}
+console.log(`成绩等级：${grade}`); // 输出：成绩等级：良好
+
+// switch
+let week = 3;
+let weekName;
+switch (week) {
+  case 1:
+    weekName = "星期一";
+    break; // 跳出switch，防止穿透
+  case 3:
+    weekName = "星期三";
+    break;
+  case 7:
+    weekName = "星期日";
+    break;
+  default:
+    weekName = "无效日期";
+}
+console.log(`今天是：${weekName}`); // 输出：今天是：星期三
+```
+
+#### 2. 循环语句（重复执行某段代码）
+- `for` 循环：最常用，适合已知循环次数的场景
+- `for...of` 循环：便捷遍历数组/字符串等可迭代对象，直接获取值
+- `while` 循环：适合未知循环次数，满足条件即执行
+- `forEach` 循环：数组专属遍历，更简洁（后续数组部分详细展开）
+
+**示例**：
+```javascript
+// for 循环：遍历 1-5
+for (let i = 1; i <= 5; i++) {
+  console.log(`当前数字：${i}`);
+}
+
+// for...of 循环：遍历数组
+let fruitList = ["苹果", "香蕉", "橙子"];
+for (let fruit of fruitList) {
+  console.log(`水果：${fruit}`);
+}
+
+// while 循环：计算 1-10 的和
+let sum = 0;
+let num = 1;
+while (num <= 10) {
+  sum += num;
+  num++;
+}
+console.log(`1-10的和：${sum}`); // 输出：1-10的和：55
+```
+
+### 三、 函数定义与使用（封装可复用代码，减少冗余）
+函数是JS的核心组成，用于封装一段可重复执行的代码块，常用3种定义方式：
+
+#### 1. 函数声明（最基础，支持函数提升）
+```javascript
+// 语法：function 函数名(参数1, 参数2) { 函数体; return 返回值; }
+function calculateAdd(a, b) {
+  return a + b; // return 用于返回函数执行结果，无返回值可省略（默认返回undefined）
+}
+
+// 调用函数
+let result = calculateAdd(3, 5);
+console.log(`3+5的结果：${result}`); // 输出：3+5的结果：8
+```
+
+#### 2. 函数表达式（赋值式定义，不支持函数提升）
+```javascript
+let calculateMul = function (a, b) {
+  return a * b;
+};
+
+// 调用函数
+let mulResult = calculateMul(4, 6);
+console.log(`4*6的结果：${mulResult}`); // 输出：4*6的结果：24
+```
+
+#### 3. 箭头函数（ES6新增，简洁高效，无自身this）
+```javascript
+// 语法：(参数1, 参数2) => { 函数体; return 返回值; }
+// 简化：单个参数可省略()，单行返回可省略{}和return
+let calculateSub = (a, b) => a - b;
+
+// 调用函数
+let subResult = calculateSub(10, 4);
+console.log(`10-4的结果：${subResult}`); // 输出：10-4的结果：6
+```
+
+### 四、 数组与对象操作（处理复杂数据集合）
+#### 1. 数组（有序数据集合，常用操作）
+数组用于存储一组有序数据，常用**增、删、查、遍历**操作：
+```javascript
+// 定义数组
+let animalList = ["猫", "狗", "兔子"];
+
+// 1. 查找与遍历：forEach（数组专属遍历）
+animalList.forEach((animal, index) => {
+  console.log(`索引${index}：${animal}`);
+});
+
+// 2. 增加元素：push（尾部添加）、unshift（头部添加）
+animalList.push("仓鼠"); // 尾部添加
+animalList.unshift("鹦鹉"); // 头部添加
+console.log("添加后数组：", animalList);
+
+// 3. 删除元素：pop（尾部删除）、shift（头部删除）
+animalList.pop(); // 尾部删除
+animalList.shift(); // 头部删除
+console.log("删除后数组：", animalList);
+
+// 4. 数组长度：length 属性
+console.log(`数组长度：${animalList.length}`);
+```
+
+#### 2. 对象（键值对数据集合，存储复杂实体信息）
+对象用于存储具有多个属性的实体，属性以`键: 值`形式存在，常用操作：
+```javascript
+// 定义对象
+let person = {
+  name: "王五",
+  age: 30,
+  job: "工程师",
+  // 对象中的方法（函数）
+  introduce: function () {
+    console.log(`大家好，我是${this.name}，今年${this.age}岁`);
+  }
+};
+
+// 1. 访问对象属性：点语法（推荐） / 方括号语法
+console.log(`姓名：${person.name}`);
+console.log(`职业：${person["job"]}`);
+
+// 2. 修改对象属性
+person.age = 31;
+console.log(`修改后年龄：${person.age}`);
+
+// 3. 调用对象方法
+person.introduce();
+
+// 4. 添加新属性
+person.gender = "男";
+console.log(`新增性别属性：${person.gender}`);
+```
+
+### 五、 DOM交互基础（JS操作HTML页面，实现页面交互）
+DOM（文档对象模型）是JS操作HTML页面的桥梁，常用基础操作：
+1.  获取DOM元素（核心：`document.querySelector()` / `document.querySelectorAll()`）
+2.  修改元素内容/样式
+3.  绑定事件（如点击事件`click`）
+
+**示例（结合HTML）**：
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>DOM交互示例</title>
+</head>
+<body>
+  <h1 id="title">原始标题</h1>
+  <button id="btn">点击修改标题</button>
+
+  <script>
+    // 1. 获取DOM元素
+    const title = document.querySelector("#title"); // 通过id获取单个元素
+    const btn = document.querySelector("#btn");
+
+    // 2. 绑定点击事件
+    btn.addEventListener("click", function () {
+      // 3. 修改元素内容
+      title.innerText = "修改后的标题";
+      // 4. 修改元素样式
+      title.style.color = "#42b983";
+      title.style.textAlign = "center";
+    });
+  </script>
+</body>
+</html>
+```
+
+### 六、 常用内置方法与运算符
+#### 1. 常用运算符
+- 算术运算符：`+`（加/拼接字符串）、`-`、`*`、`/`、`%`（取余）
+- 赋值运算符：`=`、`+=`、`-=`、`*=`
+- 比较运算符：`===`（全等，值和类型都相同）、`!==`（不全等）、`>`、`<`
+- 逻辑运算符：`&&`（与）、`||`（或）、`!`（非）
+
+#### 2. 常用内置方法
+- 字符串方法：`length`（获取长度）、`toLowerCase()`（转小写）、`toUpperCase()`（转大写）
+- 数字方法：`parseInt()`（转整数）、`parseFloat()`（转浮点数）
+- 控制台输出：`console.log()`（调试常用，输出信息到浏览器控制台）
+
+**示例**：
+```javascript
+// 字符串方法
+let str = "Hello JavaScript";
+console.log(`字符串长度：${str.length}`);
+console.log(`转小写：${str.toLowerCase()}`);
+
+// 数字转换
+let numStr = "123.45";
+let intNum = parseInt(numStr);
+let floatNum = parseFloat(numStr);
+console.log(`转整数：${intNum}，转浮点数：${floatNum}`);
+
+// 逻辑运算符
+let isLogin = true;
+let hasPermission = false;
+if (isLogin && hasPermission) {
+  console.log("有权限访问");
+} else {
+  console.log("无权限访问");
+}
+```
+
+### 总结
+1.  JS常用语法围绕**「数据存储→逻辑控制→代码复用→数据处理→页面交互」**的逻辑展开，是构建交互页面的核心。
+2.  变量优先使用`let/const`，函数推荐箭头函数（简洁），数组/对象操作是处理复杂数据的基础。
+3.  DOM交互是JS与HTML联动的关键，`querySelector()`、`addEventListener()`是入门必备。
+4.  上述语法覆盖了静态页面交互、简单数据处理的核心场景，熟练掌握后可实现大部分常见前端交互需求。

@@ -19,6 +19,22 @@ AI-生成：生成文本，生成脑图，生成表格，格式化文档。
 
 实操：爬虫入门：requests，beautifulsoup4，selenium，scrapy
 
-实操：js网站
-实操：php网站
-实操：java网站
+
+1.梳理 HTML 常用标签，一共18个，学完就会了
+https://www.doubao.com/thread/w47e92cae960bee96
+
+2.CSS 常用样式 https://www.doubao.com/thread/w6d55627842277d0e
+
+3.javascript常用语法 https://www.doubao.com/thread/wb6b89d13a88e2ae6
+
+4.mysql常用语法 
+
+5.python常用语法
+
+6.java常用语法
+
+7.c++常用语法
+
+8.go常用语法
+
+9.json
