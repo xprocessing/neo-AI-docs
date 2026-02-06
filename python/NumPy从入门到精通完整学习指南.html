@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumPy从入门到精通完整学习指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#013243',
+                        secondary: '#4FBAF1',
+                        accent: '#FF6B6B',
+                        success: '#28A745',
+                        warning: '#FFC107',
+                        dark: '#212529',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                        code: ['Consolas', 'Monaco', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .notebook-bg {
+                background-image: 
+                    linear-gradient(to bottom, transparent 23px, #e5e7eb 23px, #e5e7eb 24px, transparent 24px),
+                    linear-gradient(to right, transparent 19px, #e5e7eb 19px, #e5e7eb 20px, transparent 20px);
+                background-size: 100% 24px, 20px 100%;
+                background-color: #fafafa;
+            }
+            .learning-card {
+                transition: all 0.3s ease;
+                border-left: 4px solid transparent;
+            }
+            .learning-card:hover {
+                border-left-color: #013243;
+                transform: translateX(5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            .code-block {
+                background-color: #1e293b;
+                color: #f8fafc;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                overflow-x: auto;
+                margin: 1rem 0;
+            }
+            .python-keyword { color: #61AFEF; }
+            .python-function { color: #FCC837; }
+            .python-string { color: #98C379; }
+            .python-comment { color: #5C6370; }
+            .python-number { color: #D19A66; }
+            .python-variable { color: #E06C75; }
+            
+            .progress-step {
+                background: linear-gradient(135deg, #013243 0%, #4FBAF1 100%);
+                color: white;
+                transition: transform 0.3s ease;
+            }
+            .progress-step:hover {
+                transform: scale(1.05);
+            }
+            
+            .tip-box {
+                background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+                border-left: 4px solid #4FBAF1;
+            }
+            .warning-box {
+                background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+                border-left: 4px solid #FFC107;
+            }
+            .danger-box {
+                background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+                border-left: 4px solid #FF6B6B;
+            }
+        }
+    </style>
+</head>
+
+<body class="notebook-bg min-h-screen font-sans">
+    <!-- 页面容器 -->
+    <div class="max-w-5xl mx-auto px-6 py-8 bg-white/95 shadow-2xl min-h-screen rounded-xl">
+        
+        <!-- 标题部分 -->
+        <header class="text-center mb-12">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl mb-6">
+                <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">
+                    <i class="fa fa-calculator text-primary mr-3"></i>
+                    NumPy从入门到精通完整学习指南
+                </h1>
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-700 mb-4">
+                    掌握Python科学计算的核心库，高效处理数值数据
+                </p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <span class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium">数组基础</span>
+                    <span class="bg-secondary text-white px-4 py-2 rounded-full text-sm font-medium">核心操作</span>
+                    <span class="bg-accent text-white px-4 py-2 rounded-full text-sm font-medium">高级特性</span>
+                    <span class="bg-success text-white px-4 py-2 rounded-full text-sm font-medium">实战应用</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 学习路径概览 -->
+        <section class="mb-16">
+            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-road text-primary mr-2"></i>
+                    学习路径概览
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div class="progress-step p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold mb-2">1</div>
+                        <div class="text-sm">基础入门</div>
+                    </div>
+                    <div class="progress-step p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold mb-2">2</div>
+                        <div class="text-sm">核心操作</div>
+                    </div>
+                    <div class="progress-step p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold mb-2">3</div>
+                        <div class="text-sm">高级特性</div>
+                    </div>
+                    <div class="progress-step p-4 rounded-xl text-center">
+                        <div class="text-2xl font-bold mb-2">4</div>
+                        <div class="text-sm">实战应用</div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4">
+                        <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+                        学习建议
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-green-600">学习时间安排</h4>
+                            <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                                <li>• 基础阶段：1-2周，每天2-3小时</li>
+                                <li>• 进阶阶段：2-3周，每天3-4小时</li>
+                                <li>• 高级特性：2-3周，每周10-15小时</li>
+                                <li>• 实战项目：1-2个月，每周15-20小时</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-blue-600">学习方法</h4>
+                            <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                                <li>• 理论与实践相结合</li>
+                                <li>• 多写代码，多做项目</li>
+                                <li>• 学习NumPy官方文档</li>
+                                <li>• 关注性能优化技巧</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第一阶段：基础入门 -->
+        <section id="beginner" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-play text-primary mr-2"></i>
+                    第一阶段：基础入门（1-2周）
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-primary">
+                            <i class="fa fa-info-circle text-primary mr-2"></i>
+                            NumPy简介与安装
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark mb-2">什么是NumPy？</h4>
+                                <p class="text-gray-700">
+                                    NumPy（Numerical Python）是Python科学计算的核心库，提供了高效的多维数组对象和数学函数，是数据科学、机器学习和科学计算的基础工具。
+                                </p>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark mb-2">安装NumPy</h4>
+                                <div class="code-block">
+                                    <span class="python-comment"># 使用pip安装</span><br>
+                                    pip install numpy<br><br>
+                                    <span class="python-comment"># 使用conda安装</span><br>
+                                    conda install numpy<br><br>
+                                    <span class="python-comment"># 检查安装是否成功</span><br>
+                                    <span class="python-keyword">import</span> numpy <span class="python-keyword">as</span> np<br>
+                                    <span class="python-function">print</span>(np.__version__)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-secondary">
+                            <i class="fa fa-cube text-secondary mr-2"></i>
+                            NumPy数组基础
+                        </h3>
+                        <div class="code-block">
+                            <span class="python-comment"># 导入NumPy</span><br>
+                            <span class="python-keyword">import</span> numpy <span class="python-keyword">as</span> np<br><br>
+                            <span class="python-comment"># 创建一维数组</span><br>
+                            arr1d = np.<span class="python-function">array</span>([<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>, <span class="python-number">4</span>, <span class="python-number">5</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"一维数组:"</span>, arr1d)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组形状:"</span>, arr1d.shape)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组维度:"</span>, arr1d.ndim)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组类型:"</span>, arr1d.dtype)<br><br>
+                            <span class="python-comment"># 创建二维数组</span><br>
+                            arr2d = np.<span class="python-function">array</span>([[<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>], [<span class="python-number">4</span>, <span class="python-number">5</span>, <span class="python-number">6</span>]])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n二维数组:"</span>, arr2d)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组形状:"</span>, arr2d.shape)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组维度:"</span>, arr2d.ndim)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-accent">
+                        <i class="fa fa-plus-circle text-accent mr-2"></i>
+                        数组创建方法
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-blue-600">基础创建方法</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># 使用array()函数</span><br>
+                                arr = np.<span class="python-function">array</span>([<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>])<br><br>
+                                <span class="python-comment"># 创建全零数组</span><br>
+                                zeros_arr = np.<span class="python-function">zeros</span>((<span class="python-number">3</span>, <span class="python-number">4</span>))<br><br>
+                                <span class="python-comment"># 创建全一数组</span><br>
+                                ones_arr = np.<span class="python-function">ones</span>((<span class="python-number">2</span>, <span class="python-number">3</span>))<br><br>
+                                <span class="python-comment"># 创建空数组</span><br>
+                                empty_arr = np.<span class="python-function">empty</span>((<span class="python-number">2</span>, <span class="python-number">2</span>))<br><br>
+                                <span class="python-comment"># 创建单位矩阵</span><br>
+                                identity_arr = np.<span class="python-function">identity</span>(<span class="python-number">3</span>)
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-green-600">序列创建方法</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># 创建等差数列</span><br>
+                                linspace_arr = np.<span class="python-function">linspace</span>(<span class="python-number">0</span>, <span class="python-number">10</span>, <span class="python-number">5</span>)<br><br>
+                                <span class="python-comment"># 创建等比数列</span><br>
+                                logspace_arr = np.<span class="python-function">logspace</span>(<span class="python-number">0</span>, <span class="python-number">2</span>, <span class="python-number">5</span>)<br><br>
+                                <span class="python-comment"># 创建整数序列</span><br>
+                                arange_arr = np.<span class="python-function">arange</span>(<span class="python-number">0</span>, <span class="python-number">10</span>, <span class="python-number">2</span>)<br><br>
+                                <span class="python-comment"># 创建随机数组</span><br>
+                                random_arr = np.<span class="python-function">random</span>.<span class="python-function">rand</span>(<span class="python-number">3</span>, <span class="python-number">3</span>)<br><br>
+                                <span class="python-comment"># 创建正态分布数组</span><br>
+                                normal_arr = np.<span class="python-function">random</span>.<span class="python-function">randn</span>(<span class="python-number">3</span>, <span class="python-number">3</span>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第二阶段：核心操作 -->
+        <section id="intermediate" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-green-200 pb-2">
+                    <i class="fa fa-arrow-up text-green-500 mr-2"></i>
+                    第二阶段：核心操作（2-3周）
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-search text-green-500 mr-2"></i>
+                            数组索引与切片
+                        </h3>
+                        <div class="code-block">
+                            <span class="python-comment"># 一维数组索引</span><br>
+                            arr = np.<span class="python-function">arange</span>(<span class="python-number">10</span>)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"原数组:"</span>, arr)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"索引值:"</span>, arr[<span class="python-number">5</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"切片:"</span>, arr[<span class="python-number">2</span>:<span class="python-number">7</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"步长切片:"</span>, arr[::<span class="python-number">2</span>])<br><br>
+                            <span class="python-comment"># 二维数组索引</span><br>
+                            arr2d = np.<span class="python-function">array</span>([[<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>], [<span class="python-number">4</span>, <span class="python-number">5</span>, <span class="python-number">6</span>], [<span class="python-number">7</span>, <span class="python-number">8</span>, <span class="python-number">9</span>]])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n二维数组:"</span>)<br>
+                            <span class="python-function">print</span>(arr2d)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"单行索引:"</span>, arr2d[<span class="python-number">1</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"单元素索引:"</span>, arr2d[<span class="python-number">1</span>, <span class="python-number">2</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"切片索引:"</span>, arr2d[:<span class="python-number">2</span>, <span class="python-number">1</span>:])<br><br>
+                            <span class="python-comment"># 布尔索引</span><br>
+                            bool_idx = arr &gt; <span class="python-number">5</span><br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n布尔索引结果:"</span>, arr[bool_idx])
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-calculator text-blue-500 mr-2"></i>
+                            数组运算
+                        </h3>
+                        <div class="code-block">
+                            <span class="python-comment"># 基本数学运算</span><br>
+                            arr1 = np.<span class="python-function">array</span>([<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>, <span class="python-number">4</span>])<br>
+                            arr2 = np.<span class="python-function">array</span>([<span class="python-number">5</span>, <span class="python-number">6</span>, <span class="python-number">7</span>, <span class="python-number">8</span>])<br><br>
+                            <span class="python-function">print</span>(<span class="python-string">"加法:"</span>, arr1 + arr2)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"减法:"</span>, arr2 - arr1)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"乘法:"</span>, arr1 * arr2)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"除法:"</span>, arr2 / arr1)<br><br>
+                            <span class="python-comment"># 数学函数</span><br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n平方根:"</span>, np.<span class="python-function">sqrt</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"指数:"</span>, np.<span class="python-function">exp</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"正弦:"</span>, np.<span class="python-function">sin</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"对数:"</span>, np.<span class="python-function">log</span>(arr1))<br><br>
+                            <span class="python-comment"># 统计函数</span><br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n平均值:"</span>, np.<span class="python-function">mean</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"标准差:"</span>, np.<span class="python-function">std</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"最大值:"</span>, np.<span class="python-function">max</span>(arr1))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"最小值:"</span>, np.<span class="python-function">min</span>(arr1))
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-expand text-purple-500 mr-2"></i>
+                        数组形状操作
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-blue-600">形状变换</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># reshape变换形状</span><br>
+                                arr = np.<span class="python-function">arange</span>(<span class="python-number">12</span>)<br>
+                                <span class="python-function">print</span>(<span class="python-string">"原数组:"</span>, arr)<br><br>
+                                arr_3x4 = arr.<span class="python-function">reshape</span>((<span class="python-number">3</span>, <span class="python-number">4</span>))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"3x4数组:"</span>)<br>
+                                <span class="python-function">print</span>(arr_3x4)<br><br>
+                                arr_2x6 = arr.<span class="python-function">reshape</span>((<span class="python-number">2</span>, <span class="python-number">6</span>))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"2x6数组:"</span>)<br>
+                                <span class="python-function">print</span>(arr_2x6)<br><br>
+                                <span class="python-comment"># transpose转置</span><br>
+                                arr_transposed = arr_3x4.<span class="python-function">transpose</span>()<br>
+                                <span class="python-function">print</span>(<span class="python-string">"转置数组:"</span>)<br>
+                                <span class="python-function">print</span>(arr_transposed)
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-green-600">数组拼接</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># 水平拼接</span><br>
+                                arr1 = np.<span class="python-function">ones</span>((<span class="python-number">3</span>, <span class="python-number">3</span>))<br>
+                                arr2 = np.<span class="python-function">zeros</span>((<span class="python-number">3</span>, <span class="python-number">3</span>))<br><br>
+                                hstack_arr = np.<span class="python-function">hstack</span>((arr1, arr2))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"水平拼接:"</span>)<br>
+                                <span class="python-function">print</span>(hstack_arr)<br><br>
+                                <span class="python-comment"># 垂直拼接</span><br>
+                                vstack_arr = np.<span class="python-function">vstack</span>((arr1, arr2))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"垂直拼接:"</span>)<br>
+                                <span class="python-function">print</span>(vstack_arr)<br><br>
+                                <span class="python-comment"># 深度拼接</span><br>
+                                dstack_arr = np.<span class="python-function">dstack</span>((arr1, arr2))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"深度拼接形状:"</span>, dstack_arr.shape)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第三阶段：高级特性 -->
+        <section id="advanced" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-purple-200 pb-2">
+                    <i class="fa fa-star text-purple-500 mr-2"></i>
+                    第三阶段：高级特性（2-3周）
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                            <i class="fa fa-magic text-purple-500 mr-2"></i>
+                            广播机制
+                        </h3>
+                        <div class="code-block">
+                            <span class="python-comment"># 标量与数组运算</span><br>
+                            arr = np.<span class="python-function">arange</span>(<span class="python-number">5</span>)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"原数组:"</span>, arr)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组+2:"</span>, arr + <span class="python-number">2</span>)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"数组*3:"</span>, arr * <span class="python-number">3</span>)<br><br>
+                            <span class="python-comment"># 不同形状数组运算</span><br>
+                            arr2d = np.<span class="python-function">arange</span>(<span class="python-number">12</span>).<span class="python-function">reshape</span>((<span class="python-number">3</span>, <span class="python-number">4</span>))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"\n二维数组:"</span>)<br>
+                            <span class="python-function">print</span>(arr2d)<br><br>
+                            <span class="python-comment"># 一维数组与二维数组运算</span><br>
+                            row_vector = np.<span class="python-function">array</span>([<span class="python-number">1</span>, <span class="python-number">2</span>, <span class="python-number">3</span>, <span class="python-number">4</span>])<br>
+                            <span class="python-function">print</span>(<span class="python-string">"行向量:"</span>, row_vector)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"二维数组+行向量:"</span>)<br>
+                            <span class="python-function">print</span>(arr2d + row_vector)<br><br>
+                            <span class="python-comment"># 列向量与二维数组运算</span><br>
+                            col_vector = np.<span class="python-function">array</span>([<span class="python-number">10</span>, <span class="python-number">20</span>, <span class="python-number">30</span>]).<span class="python-function">reshape</span>((<span class="python-number">3</span>, <span class="python-number">1</span>))<br>
+                            <span class="python-function">print</span>(<span class="python-string">"列向量:"</span>, col_vector)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"二维数组+列向量:"</span>)<br>
+                            <span class="python-function">print</span>(arr2d + col_vector)
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-calculator text-blue-500 mr-2"></i>
+                            线性代数运算
+                        </h3>
+                        <div class="code-block">
+                            <span class="python-comment"># 矩阵乘法</span><br>
+                            A = np.<span class="python-function">array</span>([[<span class="python-number">1</span>, <span class="python-number">2</span>], [<span class="python-number">3</span>, <span class="python-number">4</span>]])<br>
+                            B = np.<span class="python-function">array</span>([[<span class="python-number">5</span>, <span class="python-number">6</span>], [<span class="python-number">7</span>, <span class="python-number">8</span>]])<br><br>
+                            <span class="python-function">print</span>(<span class="python-string">"矩阵A:"</span>)<br>
+                            <span class="python-function">print</span>(A)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"矩阵B:"</span>)<br>
+                            <span class="python-function">print</span>(B)<br><br>
+                            <span class="python-function">print</span>(<span class="python-string">"矩阵乘法:"</span>)<br>
+                            <span class="python-function">print</span>(np.<span class="python-function">dot</span>(A, B))<br><br>
+                            <span class="python-comment"># 矩阵逆</span><br>
+                            A_inv = np.<span class="python-function">linalg</span>.<span class="python-function">inv</span>(A)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"矩阵A的逆:"</span>)<br>
+                            <span class="python-function">print</span>(A_inv)<br><br>
+                            <span class="python-comment"># 特征值和特征向量</span><br>
+                            eigenvalues, eigenvectors = np.<span class="python-function">linalg</span>.<span class="python-function">eig</span>(A)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"特征值:"</span>, eigenvalues)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"特征向量:"</span>)<br>
+                            <span class="python-function">print</span>(eigenvectors)<br><br>
+                            <span class="python-comment"># 奇异值分解</span><br>
+                            U, S, V = np.<span class="python-function">linalg</span>.<span class="python-function">svd</span>(A)<br>
+                            <span class="python-function">print</span>(<span class="python-string">"奇异值:"</span>, S)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-orange-600">
+                        <i class="fa fa-filter text-orange-500 mr-2"></i>
+                        高级索引与数据处理
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-blue-600">高级索引</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># 整数数组索引</span><br>
+                                arr = np.<span class="python-function">arange</span>(<span class="python-number">10</span>)<span class="python-function">.reshape</span>((<span class="python-number">2</span>, <span class="python-number">5</span>))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"原数组:"</span>)<br>
+                                <span class="python-function">print</span>(arr)<br><br>
+                                <span class="python-comment"># 整数索引</span><br>
+                                idx = np.<span class="python-function">array</span>([<span class="python-number">0</span>, <span class="python-number">1</span>, <span class="python-number">0</span>])<br>
+                                <span class="python-function">print</span>(<span class="python-string">"索引结果:"</span>, arr[<span class="python-number">0</span>, idx])<br><br>
+                                <span class="python-comment"># 花式索引</span><br>
+                                arr2d = np.<span class="python-function">arange</span>(<span class="python-number">25</span>)<span class="python-function">.reshape</span>((<span class="python-number">5</span>, <span class="python-number">5</span>))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"5x5数组:"</span>)<br>
+                                <span class="python-function">print</span>(arr2d)<br><br>
+                                <span class="python-comment"># 选择特定行和列</span><br>
+                                rows = np.<span class="python-function">array</span>([<span class="python-number">0</span>, <span class="python-number">2</span>, <span class="python-number">4</span>])<br>
+                                cols = np.<span class="python-function">array</span>([<span class="python-number">1</span>, <span class="python-number">3</span>])<br>
+                                <span class="python-function">print</span>(<span class="python-string">"花式索引结果:"</span>)<br>
+                                <span class="python-function">print</span>(arr2d[rows[:, np.<span class="python-function">newaxis</span>], cols])
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-dark mb-2 text-green-600">数据处理</h4>
+                            <div class="code-block">
+                                <span class="python-comment"># 缺失值处理</span><br>
+                                arr = np.<span class="python-function">array</span>([<span class="python-number">1</span>, np.<span class="python-function">nan</span>, <span class="python-number">3</span>, <span class="python-number">4</span>, np.<span class="python-function">nan</span>, <span class="python-number">6</span>])<br>
+                                <span class="python-function">print</span>(<span class="python-string">"含缺失值数组:"</span>, arr)<br><br>
+                                <span class="python-comment"># 检测缺失值</span><br>
+                                <span class="python-function">print</span>(<span class="python-string">"缺失值位置:"</span>, np.<span class="python-function">isnan</span>(arr))<br><br>
+                                <span class="python-comment"># 填充缺失值</span><br>
+                                arr[np.<span class="python-function">isnan</span>(arr)] = np.<span class="python-function">mean</span>(arr[~np.<span class="python-function">isnan</span>(arr)])<br>
+                                <span class="python-function">print</span>(<span class="python-string">"填充后数组:"</span>, arr)<br><br>
+                                <span class="python-comment"># 数据标准化</span><br>
+                                data = np.<span class="python-function">random</span>.<span class="python-function">randn</span>(<span class="python-number">100</span>, <span class="python-number">3</span>)<br>
+                                mean = np.<span class="python-function">mean</span>(data, axis=<span class="python-number">0</span>)<br>
+                                std = np.<span class="python-function">std</span>(data, axis=<span class="python-number">0</span>)<br>
+                                normalized_data = (data - mean) / std<br>
+                                <span class="python-function">print</span>(<span class="python-string">"标准化后均值:"</span>, np.<span class="python-function">mean</span>(normalized_data, axis=<span class="python-number">0</span>))<br>
+                                <span class="python-function">print</span>(<span class="python-string">"标准化后标准差:"</span>, np.<span class="python-function">std</span>(normalized_data, axis=<span class="python-number">0</span>))
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第四阶段：实战应用 -->
+        <section id="projects" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-orange-50 to-red-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-orange-200 pb-2">
+                    <i class="fa fa-rocket text-orange-500 mr-2"></i>
+                    第四阶段：实战应用（1-2个月）
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-bar-chart text-green-500 mr-2"></i>
+                            数据分析应用
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 数据清洗和预处理</li>
+                            <li>• 描述性统计分析</li>
+                            <li>• 相关性分析</li>
+                            <li>• 数据可视化基础</li>
+                            <li>• 时间序列分析</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-cogs text-blue-500 mr-2"></i>
+                            机器学习应用
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 特征工程</li>
+                            <li>• 数据标准化和归一化</li>
+                            <li>• 线性回归实现</li>
+                            <li>• 聚类分析</li>
+                            <li>• 主成分分析</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                            <i class="fa fa-flask text-purple-500 mr-2"></i>
+                            科学计算应用
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 数值积分和微分</li>
+                            <li>• 常微分方程求解</li>
+                            <li>• 傅里叶变换</li>
+                            <li>• 信号处理</li>
+                            <li>• 图像处理基础</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-orange-600">
+                        <i class="fa fa-code-fork text-orange-500 mr-2"></i>
+                        实战项目：房价预测数据分析
+                    </h3>
+                    <div class="code-block">
+                        <span class="python-comment"># 导入必要的库</span><br>
+                        <span class="python-keyword">import</span> numpy <span class="python-keyword">as</span> np<br>
+                        <span class="python-keyword">import</span> matplotlib.pyplot <span class="python-keyword">as</span> plt<br><br>
+                        <span class="python-comment"># 生成模拟数据</span><br>
+                        np.<span class="python-function">random</span>.<span class="python-function">seed</span>(<span class="python-number">42</span>)<br>
+                        <span class="python-variable">house_size</span> = np.<span class="python-function">random</span>.<span class="python-function">randint</span>(<span class="python-number">50</span>, <span class="python-number">200</span>, <span class="python-number">100</span>)<br>
+                        <span class="python-variable">house_price</span> = <span class="python-number">30</span> * house_size + np.<span class="python-function">random</span>.<span class="python-function">randn</span>(<span class="python-number">100</span>) * <span class="python-number">200</span><br><br>
+                        <span class="python-comment"># 数据预处理</span><br>
+                        <span class="python-variable">X</span> = house_size.<span class="python-function">reshape</span>((<span class="python-number">-1</span>, <span class="python-number">1</span>))<br>
+                        <span class="python-variable">y</span> = house_price<br><br>
+                        <span class="python-comment"># 添加偏置项</span><br>
+                        <span class="python-variable">X_b</span> = np.<span class="python-function">c_[</span>np.<span class="python-function">ones</span>((<span class="python-number">100</span>, <span class="python-number">1</span>)), X]<br><br>
+                        <span class="python-comment"># 使用最小二乘法求解线性回归</span><br>
+                        <span class="python-variable">theta_best</span> = np.<span class="python-function">linalg</span>.<span class="python-function">inv</span>(X_b.T.<span class="python-function">dot</span>(X_b)).<span class="python-function">dot</span>(X_b.T).<span class="python-function">dot</span>(y)<br><br>
+                        <span class="python-function">print</span>(<span class="python-string">"回归系数:"</span>, theta_best)<br><br>
+                        <span class="python-comment"># 预测</span><br>
+                        <span class="python-variable">X_new</span> = np.<span class="python-function">array</span>([[<span class="python-number">50</span>], [<span class="python-number">200</span>]])<br>
+                        <span class="python-variable">X_new_b</span> = np.<span class="python-function">c_[</span>np.<span class="python-function">ones</span>((<span class="python-number">2</span>, <span class="python-number">1</span>)), X_new]<br>
+                        <span class="python-variable">y_predict</span> = X_new_b.<span class="python-function">dot</span>(theta_best)<br><br>
+                        <span class="python-function">print</span>(<span class="python-string">"预测结果:"</span>, y_predict)<br><br>
+                        <span class="python-comment"># 可视化结果</span><br>
+                        plt.<span class="python-function">scatter</span>(X, y)<br>
+                        plt.<span class="python-function">plot</span>(X_new, y_predict, <span class="python-string">"r-"</span>)<br>
+                        plt.<span class="python-function">xlabel</span>(<span class="python-string">"房屋面积(平方米)"</span>)<br>
+                        plt.<span class="python-function">ylabel</span>(<span class="python-string">"房屋价格(万元)"</span>)<br>
+                        plt.<span class="python-function">show</span>()
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习资源 -->
+        <section id="resources" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-teal-50 to-cyan-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-teal-200 pb-2">
+                    <i class="fa fa-book text-teal-500 mr-2"></i>
+                    优质学习资源
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-book text-blue-500 mr-2"></i>
+                            推荐书籍
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">《利用Python进行数据分析》</h4>
+                                <p class="text-gray-600 text-sm">Wes McKinney著，NumPy和Pandas的权威指南</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">《Python科学计算》</h4>
+                                <p class="text-gray-600 text-sm">Robert Johansson著，涵盖NumPy、SciPy等科学计算库</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">《NumPy学习指南》</h4>
+                                <p class="text-gray-600 text-sm">Ivan Idris著，NumPy的入门经典教材</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-play text-green-500 mr-2"></i>
+                            在线课程
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">NumPy官方文档</h4>
+                                <p class="text-gray-600 text-sm">最权威的NumPy参考资料</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">Coursera数据科学专项课程</h4>
+                                <p class="text-gray-600 text-sm">包含NumPy和Pandas的详细讲解</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">edX Python科学计算课程</h4>
+                                <p class="text-gray-600 text-sm">MIT和哈佛提供的在线课程</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-globe text-purple-500 mr-2"></i>
+                        在线工具和平台
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <i class="fa fa-code text-2xl text-purple-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">Jupyter Notebook</h4>
+                            <p class="text-gray-600 text-sm">交互式编程和数据分析环境</p>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <i class="fa fa-cloud text-2xl text-blue-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">Google Colab</h4>
+                            <p class="text-gray-600 text-sm">免费的云端Python编程环境</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <i class="fa fa-github text-2xl text-green-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">GitHub</h4>
+                            <p class="text-gray-600 text-sm">开源代码库和社区</p>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <i class="fa fa-stack-overflow text-2xl text-orange-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">Stack Overflow</h4>
+                            <p class="text-gray-600 text-sm">技术问答社区</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 最佳实践 -->
+        <section id="best-practices" class="mb-16 learning-card">
+            <div class="bg-gradient-to-r from-gray-50 to-slate-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-gray-200 pb-2">
+                    <i class="fa fa-star text-gray-600 mr-2"></i>
+                    最佳实践与职业发展
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            NumPy最佳实践
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 优先使用向量化操作，避免显式循环</li>
+                            <li>• 使用合适的数据类型，节省内存空间</li>
+                            <li>• 避免创建不必要的数组副本</li>
+                            <li>• 使用广播机制替代显式形状变换</li>
+                            <li>• 利用NumPy的内置函数和方法</li>
+                            <li>• 注意数组的内存布局和对齐</li>
+                            <li>• 使用视图而不是副本进行操作</li>
+                            <li>• 合理使用高级索引和布尔索引</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-bullseye text-blue-500 mr-2"></i>
+                            性能优化技巧
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 使用numba加速NumPy代码</li>
+                            <li>• 利用多线程和多进程并行计算</li>
+                            <li>• 使用Cython编写高性能扩展</li>
+                            <li>• 合理使用内存映射文件</li>
+                            <li>• 避免在循环中创建数组</li>
+                            <li>• 使用适当的存储顺序（C或Fortran）</li>
+                            <li>• 利用BLAS/LAPACK优化的线性代数运算</li>
+                            <li>• 定期监控和分析代码性能</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-briefcase text-purple-500 mr-2"></i>
+                        职业发展路径
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">数据分析师</h4>
+                            <ul class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)] space-y-1">
+                                <li>• 熟练使用NumPy进行数据处理</li>
+                                <li>• 掌握Pandas进行数据分析</li>
+                                <li>• 了解数据可视化工具</li>
+                                <li>• 具备统计学基础知识</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">机器学习工程师</h4>
+                            <ul class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)] space-y-1">
+                                <li>• 深入理解NumPy数组操作</li>
+                                <li>• 掌握Scikit-learn等机器学习库</li>
+                                <li>• 了解深度学习框架</li>
+                                <li>• 具备算法设计能力</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">数据科学家</h4>
+                            <ul class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)] space-y-1">
+                                <li>• 精通NumPy和相关科学计算库</li>
+                                <li>• 具备扎实的数学和统计基础</li>
+                                <li>• 掌握机器学习和深度学习</li>
+                                <li>• 具备研究和创新能力</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结 -->
+        <section class="mb-16">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-primary/20 pb-2">
+                    <i class="fa fa-flag-checkered text-primary mr-2"></i>
+                    学习总结
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        NumPy是Python科学计算的核心库，掌握NumPy是成为数据科学家、机器学习工程师或科学计算专家的必备技能。通过本指南的学习，你应该能够：
+                    </p>
+                    
+                    <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-6">
+                        <li>• 熟练创建和操作NumPy数组</li>
+                        <li>• 理解NumPy的广播机制和向量化操作</li>
+                        <li>• 掌握线性代数、统计分析等高级功能</li>
+                        <li>• 运用NumPy解决实际的数据科学问题</li>
+                        <li>• 编写高效的NumPy代码</li>
+                    </ul>
+                    
+                    <div class="tip-box p-4 rounded-lg mb-4">
+                        <p class="text-gray-700 font-bold">
+                            <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+                            学习建议
+                        </p>
+                        <p class="text-gray-700">
+                            NumPy只是数据科学生态系统的一部分，建议继续学习Pandas、Matplotlib、Scikit-learn等相关库，构建完整的数据科学技能体系。
+                        </p>
+                    </div>
+                    
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 font-bold text-center text-primary">
+                        记住：实践是掌握NumPy的最好方法，多做项目，多解决实际问题，才能真正精通NumPy！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-8">
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-600 mb-2">
+                    <i class="fa fa-book text-gray-400 mr-2"></i>
+                    NumPy从入门到精通完整学习指南
+                </p>
+                <p class="text-[clamp(0.9rem,2vw,1rem)] text-gray-500">
+                    系统化学习路径，助你成为Python科学计算专家 | 生成时间：2026年2月6日
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 平滑滚动和动画效果脚本 -->
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 添加滚动时的淡入效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有章节
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(section);
+        });
+
+        // 第一个章节立即显示
+        document.querySelector('section').style.opacity = '1';
+        document.querySelector('section').style.transform = 'translateY(0)';
+
+        // 卡片悬停效果增强
+        document.querySelectorAll('.learning-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0) scale(1)';
+            });
+        });
+
+        // 代码块高亮效果
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.01)';
+                this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+            });
+            
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

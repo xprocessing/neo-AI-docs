@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js 文件操作完全指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        code: ['Consolas', 'Monaco', 'monospace'],
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .code-block {
+                background-color: #1e293b;
+                color: #f8fafc;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                overflow-x: auto;
+                margin: 1rem 0;
+            }
+            .code-keyword { color: #60a5fa; }
+            .code-string { color: #34d399; }
+            .code-comment { color: #9ca3af; }
+            .code-function { color: #f59e0b; }
+            .code-variable { color: #f87171; }
+            
+            .section-card {
+                transition: all 0.3s ease;
+                border-left: 4px solid transparent;
+            }
+            .section-card:hover {
+                border-left-color: #3B82F6;
+                transform: translateX(5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            .feature-tag {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                display: inline-block;
+                margin: 0.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen font-sans">
+    <!-- 页面容器 -->
+    <div class="max-w-5xl mx-auto px-6 py-8 bg-white shadow-2xl min-h-screen rounded-xl">
+        
+        <!-- 标题部分 -->
+        <header class="text-center mb-12">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl mb-6">
+                <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">
+                    <i class="fa fa-code text-primary mr-3"></i>
+                    Node.js 文件操作完全指南
+                </h1>
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-700">
+                    从基础操作到高级技巧，全面掌握 Node.js 文件系统编程
+                </p>
+            </div>
+            
+            <!-- 核心特性标签 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <span class="feature-tag">fs 模块详解</span>
+                <span class="feature-tag">异步/同步操作</span>
+                <span class="feature-tag">文件/文件夹管理</span>
+                <span class="feature-tag">路径处理</span>
+                <span class="feature-tag">实用示例</span>
+                <span class="feature-tag">错误处理</span>
+            </div>
+        </header>
+
+        <!-- 目录 -->
+        <section class="mb-16">
+            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-list-ul text-primary mr-2"></i>
+                    目录
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)]">
+                        <li><a href="#fs-module" class="text-primary hover:text-secondary transition-colors">1. fs 核心模块</a></li>
+                        <li><a href="#file-operations" class="text-primary hover:text-secondary transition-colors">2. 文件基本操作</a></li>
+                        <li><a href="#directory-operations" class="text-primary hover:text-secondary transition-colors">3. 文件夹操作</a></li>
+                        <li><a href="#path-handling" class="text-primary hover:text-secondary transition-colors">4. 路径处理</a></li>
+                    </ul>
+                    <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)]">
+                        <li><a href="#advanced-techniques" class="text-primary hover:text-secondary transition-colors">5. 高级技巧</a></li>
+                        <li><a href="#practical-examples" class="text-primary hover:text-secondary transition-colors">6. 实用示例</a></li>
+                        <li><a href="#error-handling" class="text-primary hover:text-secondary transition-colors">7. 错误处理</a></li>
+                        <li><a href="#best-practices" class="text-primary hover:text-secondary transition-colors">8. 最佳实践</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- fs 核心模块 -->
+        <section id="fs-module" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-cogs text-primary mr-2"></i>
+                    fs 核心模块
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4">
+                        <i class="fa fa-info-circle text-blue-500 mr-2"></i>
+                        什么是 fs 模块？
+                    </h3>
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        <code class="bg-gray-100 px-2 py-1 rounded text-primary">fs</code> 是 Node.js 的核心模块之一，提供了丰富的文件系统操作API。它支持异步和同步两种操作模式，满足不同场景的需求。
+                    </p>
+                    
+                    <div class="code-block">
+                        <span class="code-comment">// 导入 fs 模块</span><br>
+                        <span class="code-keyword">const</span> fs = <span class="code-function">require</span>(<span class="code-string">'fs'</span>);<br><br>
+                        <span class="code-comment">// 导入 promise 版本（推荐）</span><br>
+                        <span class="code-keyword">const</span> fs = <span class="code-function">require</span>(<span class="code-string">'fs'</span>).promises;<br><br>
+                        <span class="code-comment">// 导入 fs/promises 模块（Node.js 14+）</span><br>
+                        <span class="code-keyword">const</span> fs = <span class="code-function">require</span>(<span class="code-string">'fs/promises'</span>);
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            异步操作（推荐）
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 非阻塞式操作，性能更好</li>
+                            <li>• 支持回调函数、Promise 和 async/await</li>
+                            <li>• 适合大多数生产环境</li>
+                            <li>• 不会阻塞事件循环</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-orange-600">
+                            <i class="fa fa-exclamation-triangle text-orange-500 mr-2"></i>
+                            同步操作
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 阻塞式操作，代码简单</li>
+                            <li>• 会阻塞事件循环</li>
+                            <li>• 适合初始化操作</li>
+                            <li>• 文件名以 Sync 结尾</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件基本操作 -->
+        <section id="file-operations" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-green-200 pb-2">
+                    <i class="fa fa-file-text text-accent mr-2"></i>
+                    文件基本操作
+                </h2>
+                
+                <!-- 创建文件 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                        <i class="fa fa-plus-circle text-green-500 mr-2"></i>
+                        创建文件
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 异步创建文件（Promise 版本）</span><br>
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">createFile</span>() {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">writeFile</span>(<span class="code-string">'example.txt'</span>, <span class="code-string">'Hello, Node.js!'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件创建成功'</span>);<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'创建文件失败:'</span>, err);<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="code-comment">// 同步创建文件</span><br>
+                        <span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;fs.<span class="code-function">writeFileSync</span>(<span class="code-string">'example.txt'</span>, <span class="code-string">'Hello, Node.js!'</span>);<br>
+                        &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件创建成功'</span>);<br>
+                        } <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'创建文件失败:'</span>, err);<br>
+                        }
+                    </div>
+                </div>
+                
+                <!-- 读取文件 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-file-o text-blue-500 mr-2"></i>
+                        读取文件
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 异步读取文件（async/await）</span><br>
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">readFile</span>() {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> data = <span class="code-keyword">await</span> fs.<span class="code-function">readFile</span>(<span class="code-string">'example.txt'</span>, <span class="code-string">'utf8'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件内容:'</span>, data);<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'读取文件失败:'</span>, err);<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="code-comment">// 流式读取（大文件推荐）</span><br>
+                        <span class="code-keyword">const</span> readStream = fs.<span class="code-function">createReadStream</span>(<span class="code-string">'large-file.txt'</span>, <span class="code-string">'utf8'</span>);<br><br>
+                        readStream.<span class="code-function">on</span>(<span class="code-string">'data'</span>, (chunk) =&gt; {<br>
+                        &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'读取到数据块:'</span>, chunk);<br>
+                        });<br><br>
+                        readStream.<span class="code-function">on</span>(<span class="code-string">'end'</span>, () =&gt; {<br>
+                        &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件读取完成'</span>);<br>
+                        });
+                    </div>
+                </div>
+                
+                <!-- 修改文件 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-edit text-purple-500 mr-2"></i>
+                        修改文件
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 覆盖写入文件</span><br>
+                        <span class="code-keyword">await</span> fs.<span class="code-function">writeFile</span>(<span class="code-string">'example.txt'</span>, <span class="code-string">'新的内容'</span>);<br><br>
+                        <span class="code-comment">// 追加内容到文件</span><br>
+                        <span class="code-keyword">await</span> fs.<span class="code-function">appendFile</span>(<span class="code-string">'example.txt'</span>, <span class="code-string">'追加的内容'</span>);<br><br>
+                        <span class="code-comment">// 流式写入</span><br>
+                        <span class="code-keyword">const</span> writeStream = fs.<span class="code-function">createWriteStream</span>(<span class="code-string">'output.txt'</span>);<br><br>
+                        writeStream.<span class="code-function">write</span>(<span class="code-string">'第一行内容\n'</span>);<br>
+                        writeStream.<span class="code-function">write</span>(<span class="code-string">'第二行内容\n'</span>);<br>
+                        writeStream.<span class="code-function">end</span>(<span class="code-string">'写入完成'</span>);<br><br>
+                        writeStream.<span class="code-function">on</span>(<span class="code-string">'finish'</span>, () =&gt; {<br>
+                        &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件写入完成'</span>);<br>
+                        });
+                    </div>
+                </div>
+                
+                <!-- 删除文件 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                        <i class="fa fa-trash text-red-500 mr-2"></i>
+                        删除文件
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 异步删除文件</span><br>
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">deleteFile</span>() {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">unlink</span>(<span class="code-string">'example.txt'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件删除成功'</span>);<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'删除文件失败:'</span>, err);<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="code-comment">// 检查文件是否存在</span><br>
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">fileExists</span>(filename) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">access</span>(filename, fs.constants.F_OK);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> <span class="code-keyword">true</span>;<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> <span class="code-keyword">false</span>;<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件夹操作 -->
+        <section id="directory-operations" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-yellow-200 pb-2">
+                    <i class="fa fa-folder text-warm mr-2"></i>
+                    文件夹操作
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-folder-plus text-green-500 mr-2"></i>
+                            创建文件夹
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 创建单个文件夹</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">mkdir</span>(<span class="code-string">'new-folder'</span>);<br><br>
+                            <span class="code-comment">// 递归创建多级文件夹</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">mkdir</span>(<span class="code-string">'path/to/folder'</span>, { <span class="code-variable">recursive</span>: <span class="code-keyword">true</span> });
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-folder-open text-blue-500 mr-2"></i>
+                            读取文件夹
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 读取文件夹内容</span><br>
+                            <span class="code-keyword">const</span> files = <span class="code-keyword">await</span> fs.<span class="code-function">readdir</span>(<span class="code-string">'./'</span>);<br>
+                            <span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件夹内容:'</span>, files);<br><br>
+                            <span class="code-comment">// 读取文件夹详细信息</span><br>
+                            <span class="code-keyword">const</span> files = <span class="code-keyword">await</span> fs.<span class="code-function">readdir</span>(<span class="code-string">'./'</span>, { <span class="code-variable">withFileTypes</span>: <span class="code-keyword">true</span> });<br>
+                            files.<span class="code-function">forEach</span>(file =&gt; {<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(file.name, file.isDirectory() ? <span class="code-string">'文件夹'</span> : <span class="code-string">'文件'</span>);<br>
+                            });
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                            <i class="fa fa-exchange text-purple-500 mr-2"></i>
+                            重命名/移动
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 重命名文件或文件夹</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">rename</span>(<span class="code-string">'old-name.txt'</span>, <span class="code-string">'new-name.txt'</span>);<br><br>
+                            <span class="code-comment">// 移动文件</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">rename</span>(<span class="code-string">'file.txt'</span>, <span class="code-string">'new/path/file.txt'</span>);
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                            <i class="fa fa-trash-o text-red-500 mr-2"></i>
+                            删除文件夹
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 删除空文件夹</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">rmdir</span>(<span class="code-string">'empty-folder'</span>);<br><br>
+                            <span class="code-comment">// 递归删除非空文件夹</span><br>
+                            <span class="code-keyword">await</span> fs.<span class="code-function">rm</span>(<span class="code-string">'non-empty-folder'</span>, { <span class="code-variable">recursive</span>: <span class="code-keyword">true</span> });
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 路径处理 -->
+        <section id="path-handling" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-purple-200 pb-2">
+                    <i class="fa fa-map-marker text-purple-500 mr-2"></i>
+                    路径处理
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4">
+                        <i class="fa fa-info-circle text-purple-500 mr-2"></i>
+                        path 模块详解
+                    </h3>
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        <code class="bg-gray-100 px-2 py-1 rounded text-primary">path</code> 模块提供了处理文件路径的工具函数，帮助你在不同操作系统上正确处理文件路径。
+                    </p>
+                    
+                    <div class="code-block">
+                        <span class="code-keyword">const</span> path = <span class="code-function">require</span>(<span class="code-string">'path'</span>);<br><br>
+                        <span class="code-comment">// 获取文件名</span><br>
+                        <span class="code-keyword">const</span> filename = path.<span class="code-function">basename</span>(<span class="code-string">'/path/to/file.txt'</span>);<br>
+                        <span class="code-comment">// 输出: file.txt</span><br><br>
+                        <span class="code-comment">// 获取文件扩展名</span><br>
+                        <span class="code-keyword">const</span> extname = path.<span class="code-function">extname</span>(<span class="code-string">'/path/to/file.txt'</span>);<br>
+                        <span class="code-comment">// 输出: .txt</span><br><br>
+                        <span class="code-comment">// 获取目录名</span><br>
+                        <span class="code-keyword">const</span> dirname = path.<span class="code-function">dirname</span>(<span class="code-string">'/path/to/file.txt'</span>);<br>
+                        <span class="code-comment">// 输出: /path/to</span><br><br>
+                        <span class="code-comment">// 拼接路径</span><br>
+                        <span class="code-keyword">const</span> fullPath = path.<span class="code-function">join</span>(<span class="code-string">'/path'</span>, <span class="code-string">'to'</span>, <span class="code-string">'file.txt'</span>);<br>
+                        <span class="code-comment">// 输出: /path/to/file.txt</span><br><br>
+                        <span class="code-comment">// 解析路径</span><br>
+                        <span class="code-keyword">const</span> parsedPath = path.<span class="code-function">parse</span>(<span class="code-string">'/path/to/file.txt'</span>);<br>
+                        <span class="code-comment">// 输出: { root: '/', dir: '/path/to', base: 'file.txt', name: 'file', ext: '.txt' }</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-home text-blue-500 mr-2"></i>
+                        常用路径常量
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 当前工作目录</span><br>
+                        <span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'当前目录:'</span>, process.cwd());<br><br>
+                        <span class="code-comment">// __dirname: 当前模块所在目录的绝对路径</span><br>
+                        <span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'模块目录:'</span>, __dirname);<br><br>
+                        <span class="code-comment">// __filename: 当前模块文件的绝对路径</span><br>
+                        <span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'模块文件:'</span>, __filename);<br><br>
+                        <span class="code-comment">// 路径拼接示例</span><br>
+                        <span class="code-keyword">const</span> configPath = path.<span class="code-function">join</span>(__dirname, <span class="code-string">'config'</span>, <span class="code-string">'app.json'</span>);
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 高级技巧 -->
+        <section id="advanced-techniques" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-indigo-200 pb-2">
+                    <i class="fa fa-lightbulb-o text-indigo-500 mr-2"></i>
+                    高级技巧
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-search text-green-500 mr-2"></i>
+                            文件监控
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 监控文件变化</span><br>
+                            <span class="code-keyword">const</span> watcher = fs.<span class="code-function">watch</span>(<span class="code-string">'file.txt'</span>, (eventType, filename) =&gt; {<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件变化:'</span>, eventType, filename);<br>
+                            });<br><br>
+                            <span class="code-comment">// 监控目录变化</span><br>
+                            <span class="code-keyword">const</span> watcher = fs.<span class="code-function">watch</span>(<span class="code-string">'./'</span>, (eventType, filename) =&gt; {<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'目录变化:'</span>, eventType, filename);<br>
+                            });
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-info text-blue-500 mr-2"></i>
+                            文件信息
+                        </h3>
+                        <div class="code-block">
+                            <span class="code-comment">// 获取文件详细信息</span><br>
+                            <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">getFileInfo</span>() {<br>
+                            &nbsp;&nbsp;<span class="code-keyword">const</span> stats = <span class="code-keyword">await</span> fs.<span class="code-function">stat</span>(<span class="code-string">'file.txt'</span>);<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件大小:'</span>, stats.size, <span class="code-string">'字节'</span>);<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'是否为文件:'</span>, stats.isFile());<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'是否为目录:'</span>, stats.isDirectory());<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'创建时间:'</span>, stats.birthtime);<br>
+                            &nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'修改时间:'</span>, stats.mtime);<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-key text-purple-500 mr-2"></i>
+                        文件权限
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment">// 修改文件权限</span><br>
+                        <span class="code-keyword">await</span> fs.<span class="code-function">chmod</span>(<span class="code-string">'file.txt'</span>, <span class="code-string">'755'</span>);<br><br>
+                        <span class="code-comment">// 修改文件所有者</span><br>
+                        <span class="code-keyword">await</span> fs.<span class="code-function">chown</span>(<span class="code-string">'file.txt'</span>, uid, gid);<br><br>
+                        <span class="code-comment">// 检查文件访问权限</span><br>
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">checkAccess</span>() {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">access</span>(<span class="code-string">'file.txt'</span>, fs.constants.R_OK | fs.constants.W_OK);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件可读可写'</span>);<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'文件访问失败:'</span>, err);<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 实用示例 -->
+        <section id="practical-examples" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-teal-50 to-cyan-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-teal-200 pb-2">
+                    <i class="fa fa-code-fork text-teal-500 mr-2"></i>
+                    实用示例
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                        <i class="fa fa-copy text-green-500 mr-2"></i>
+                        文件复制函数
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">copyFile</span>(source, destination) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> readStream = fs.<span class="code-function">createReadStream</span>(source);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> writeStream = fs.<span class="code-function">createWriteStream</span>(destination);<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">return</span> <span class="code-keyword">new</span> <span class="code-function">Promise</span>((resolve, reject) =&gt; {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;readStream.<span class="code-function">pipe</span>(writeStream);<br><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;readStream.<span class="code-function">on</span>(<span class="code-string">'error'</span>, reject);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;writeStream.<span class="code-function">on</span>(<span class="code-string">'error'</span>, reject);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;writeStream.<span class="code-function">on</span>(<span class="code-string">'finish'</span>, resolve);<br>
+                        &nbsp;&nbsp;});<br>
+                        }<br><br>
+                        <span class="code-comment">// 使用示例</span><br>
+                        <span class="code-keyword">await</span> <span class="code-function">copyFile</span>(<span class="code-string">'source.txt'</span>, <span class="code-string">'destination.txt'</span>);
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-search-plus text-blue-500 mr-2"></i>
+                        遍历目录
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">walkDirectory</span>(dir) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> files = <span class="code-keyword">await</span> fs.<span class="code-function">readdir</span>(dir, { <span class="code-variable">withFileTypes</span>: <span class="code-keyword">true</span> });<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> result = [];<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">for</span> (<span class="code-keyword">const</span> file <span class="code-keyword">of</span> files) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> fullPath = path.<span class="code-function">join</span>(dir, file.name);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (file.isDirectory()) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.<span class="code-function">push</span>(<span class="code-keyword">await</span> <span class="code-function">walkDirectory</span>(fullPath));<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;} <span class="code-keyword">else</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.<span class="code-function">push</span>(fullPath);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">return</span> result.<span class="code-function">flat</span>();<br>
+                        }<br><br>
+                        <span class="code-comment">// 使用示例</span><br>
+                        <span class="code-keyword">const</span> allFiles = <span class="code-keyword">await</span> <span class="code-function">walkDirectory</span>(<span class="code-string">'./'</span>);<br>
+                        <span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'所有文件:'</span>, allFiles);
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-rename text-purple-500 mr-2"></i>
+                        批量重命名
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">batchRename</span>(dir, prefix) {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">const</span> files = <span class="code-keyword">await</span> fs.<span class="code-function">readdir</span>(dir);<br>
+                        &nbsp;&nbsp;<span class="code-keyword">let</span> count = 1;<br><br>
+                        &nbsp;&nbsp;<span class="code-keyword">for</span> (<span class="code-keyword">const</span> file <span class="code-keyword">of</span> files) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> ext = path.<span class="code-function">extname</span>(file);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> newName = <span class="code-string">`${prefix}-${count}${ext}`</span>;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">rename</span>(<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.<span class="code-function">join</span>(dir, file),<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.<span class="code-function">join</span>(dir, newName)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;count++;<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="code-comment">// 使用示例</span><br>
+                        <span class="code-keyword">await</span> <span class="code-function">batchRename</span>(<span class="code-string">'./images'</span>, <span class="code-string">'photo'</span>);
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 错误处理 -->
+        <section id="error-handling" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-red-50 to-orange-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-red-200 pb-2">
+                    <i class="fa fa-exclamation-triangle text-red-500 mr-2"></i>
+                    错误处理
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                        <i class="fa fa-warning text-red-500 mr-2"></i>
+                        常见错误类型
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">ENOENT</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                文件或目录不存在
+                            </p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">EACCES</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                权限不足
+                            </p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">EEXIST</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                文件已存在
+                            </p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">EBUSY</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                文件正被使用
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-shield text-blue-500 mr-2"></i>
+                        错误处理最佳实践
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-keyword">async</span> <span class="code-function">function</span> <span class="code-function">safeFileOperation</span>() {<br>
+                        &nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// 先检查文件是否存在</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">try</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">access</span>(<span class="code-string">'file.txt'</span>, fs.constants.F_OK);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件存在'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件不存在，创建新文件'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> fs.<span class="code-function">writeFile</span>(<span class="code-string">'file.txt'</span>, <span class="code-string">'默认内容'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;}<br><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// 执行文件操作</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">const</span> data = <span class="code-keyword">await</span> fs.<span class="code-function">readFile</span>(<span class="code-string">'file.txt'</span>, <span class="code-string">'utf8'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'文件内容:'</span>, data);<br>
+                        &nbsp;&nbsp;} <span class="code-keyword">catch</span> (err) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'操作失败:'</span>, err.message);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// 根据错误类型进行不同处理</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (err.code === <span class="code-string">'EACCES'</span>) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'权限不足，请检查文件权限'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;} <span class="code-keyword">else</span> <span class="code-keyword">if</span> (err.code === <span class="code-string">'ENOENT'</span>) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">console</span>.<span class="code-function">error</span>(<span class="code-string">'文件或目录不存在'</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;}<br>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 最佳实践 -->
+        <section id="best-practices" class="mb-16 section-card">
+            <div class="bg-gradient-to-r from-gray-50 to-slate-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-gray-200 pb-2">
+                    <i class="fa fa-star text-gray-600 mr-2"></i>
+                    最佳实践
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            推荐做法
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 优先使用异步操作，避免阻塞事件循环</li>
+                            <li>• 使用 Promise 和 async/await 处理异步操作</li>
+                            <li>• 始终进行错误处理，避免程序崩溃</li>
+                            <li>• 使用 path 模块处理路径，确保跨平台兼容性</li>
+                            <li>• 对于大文件使用流式操作，减少内存占用</li>
+                            <li>• 操作前检查文件/目录是否存在</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            避免做法
+                        </h3>
+                        <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                            <li>• 避免在生产环境使用同步操作</li>
+                            <li>• 不要忽略错误处理</li>
+                            <li>• 避免手动拼接路径，使用 path.join()</li>
+                            <li>• 不要一次性读取大文件到内存</li>
+                            <li>• 避免频繁的文件系统操作</li>
+                            <li>• 不要假设文件操作总是成功</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-lightbulb-o text-blue-500 mr-2"></i>
+                        性能优化
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">内存优化</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                使用流式操作处理大文件，避免内存溢出
+                            </p>
+                        </div>
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">并发控制</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                控制并发文件操作数量，避免系统资源耗尽
+                            </p>
+                        </div>
+                        <div class="p-4 bg-yellow-50 rounded-lg">
+                            <h4 class="font-bold text-dark mb-2">缓存策略</h4>
+                            <p class="text-gray-600 text-[clamp(0.9rem,2vw,1rem)]">
+                                缓存文件内容，减少重复读取操作
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结 -->
+        <section class="mb-16">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-primary/20 pb-2">
+                    <i class="fa fa-flag-checkered text-primary mr-2"></i>
+                    总结
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        Node.js 的 <code class="bg-gray-100 px-2 py-1 rounded text-primary">fs</code> 模块提供了强大而灵活的文件系统操作能力。通过掌握本指南介绍的内容，你可以：
+                    </p>
+                    
+                    <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-6">
+                        <li>• 熟练使用 fs 模块进行各种文件和文件夹操作</li>
+                        <li>• 理解异步和同步操作的区别，选择合适的操作方式</li>
+                        <li>• 正确处理文件路径，确保跨平台兼容性</li>
+                        <li>• 实现高级功能如文件监控、批量处理等</li>
+                        <li>• 遵循最佳实践，编写健壮的文件系统代码</li>
+                    </ul>
+                    
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 font-bold text-center text-primary">
+                        记住：文件系统操作涉及到系统资源和数据安全，务必做好错误处理和权限管理！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-8">
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-600 mb-2">
+                    <i class="fa fa-book text-gray-400 mr-2"></i>
+                    Node.js 文件操作完全指南
+                </p>
+                <p class="text-[clamp(0.9rem,2vw,1rem)] text-gray-500">
+                    基于 Node.js 官方文档和实践经验整理 | 生成时间：2026年2月6日
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 平滑滚动和动画效果脚本 -->
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 添加滚动时的淡入效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有章节
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(section);
+        });
+
+        // 第一个章节立即显示
+        document.querySelector('section').style.opacity = '1';
+        document.querySelector('section').style.transform = 'translateY(0)';
+
+        // 卡片悬停效果增强
+        document.querySelectorAll('.section-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0) scale(1)';
+            });
+        });
+
+        // 代码块高亮效果
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.01)';
+                this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+            });
+            
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

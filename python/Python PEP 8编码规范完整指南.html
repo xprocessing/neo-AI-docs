@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python PEP 8编码规范完整指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/v4-shims.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3776AB',
+                        secondary: '#FFD43B',
+                        accent: '#FF6B6B',
+                        success: '#51CF66',
+                        warning: '#FF922B',
+                        dark: '#212529',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                        code: ['Consolas', 'Monaco', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .notebook-bg {
+                background-image: 
+                    linear-gradient(to bottom, transparent 23px, #e5e7eb 23px, #e5e7eb 24px, transparent 24px),
+                    linear-gradient(to right, transparent 19px, #e5e7eb 19px, #e5e7eb 20px, transparent 20px);
+                background-size: 100% 24px, 20px 100%;
+                background-color: #fafafa;
+            }
+            .rule-card {
+                transition: all 0.3s ease;
+                border-left: 4px solid transparent;
+            }
+            .rule-card:hover {
+                border-left-color: #3776AB;
+                transform: translateX(5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            .code-block {
+                background-color: #1e293b;
+                color: #f8fafc;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                font-family: 'Consolas', 'Monaco', monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                overflow-x: auto;
+                margin: 1rem 0;
+            }
+            .code-keyword { color: #60a5fa; }
+            .code-string { color: #34d399; }
+            .code-comment { color: #9ca3af; }
+            .code-function { color: #f59e0b; }
+            .code-variable { color: #f87171; }
+            
+            .bad-code {
+                border-left: 4px solid #ef4444;
+            }
+            .good-code {
+                border-left: 4px solid #10b981;
+            }
+            
+            .tip-box {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                border-left: 4px solid #3b82f6;
+            }
+            .warning-box {
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border-left: 4px solid #f59e0b;
+            }
+            .danger-box {
+                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                border-left: 4px solid #ef4444;
+            }
+        }
+    </style>
+</head>
+
+<body class="notebook-bg min-h-screen font-sans">
+    <!-- 页面容器 -->
+    <div class="max-w-5xl mx-auto px-6 py-8 bg-white/95 shadow-2xl min-h-screen rounded-xl">
+        
+        <!-- 标题部分 -->
+        <header class="text-center mb-12">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl mb-6">
+                <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">
+                    <i class="fa fa-code text-primary mr-3"></i>
+                    Python PEP 8编码规范完整指南
+                </h1>
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-700 mb-4">
+                    编写优雅、易读、符合Python风格的代码
+                </p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <span class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium">官方规范</span>
+                    <span class="bg-secondary text-dark px-4 py-2 rounded-full text-sm font-medium">代码风格</span>
+                    <span class="bg-accent text-white px-4 py-2 rounded-full text-sm font-medium">最佳实践</span>
+                    <span class="bg-success text-white px-4 py-2 rounded-full text-sm font-medium">开发工具</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- PEP 8简介 -->
+        <section class="mb-16">
+            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-info-circle text-primary mr-2"></i>
+                    什么是PEP 8？
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        PEP 8是Python Enhancement Proposal 8的缩写，它是Python的官方编码风格指南。PEP 8提供了一套关于如何编写Python代码的规范和建议，旨在提高代码的可读性和一致性。
+                    </p>
+                    
+                    <div class="tip-box p-4 rounded-lg mb-4">
+                        <h3 class="font-bold text-dark mb-2">
+                            <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+                            PEP 8的目标
+                        </h3>
+                        <ul class="space-y-1 text-gray-700">
+                            <li>• 提高代码的可读性</li>
+                            <li>• 使代码风格一致</li>
+                            <li>• 减少视觉干扰</li>
+                            <li>• 遵循Python的哲学"可读性很重要"</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800">
+                        遵循PEP 8规范不仅能让你的代码更美观，还能让其他开发者更容易理解和维护你的代码。这在团队协作和开源项目中尤为重要。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 代码布局 -->
+        <section id="code-layout" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-green-200 pb-2">
+                    <i class="fa fa-indent text-green-500 mr-2"></i>
+                    代码布局
+                </h2>
+                
+                <!-- 缩进 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                        <i class="fa fa-indent text-green-500 mr-2"></i>
+                        缩进
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 错误做法</h4>
+                            <div class="code-block bad-code">
+                                <span class="code-comment"># 使用制表符缩进</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">function</span>():<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 这里是制表符</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"Hello"</span>)<br><br>
+                                <span class="code-comment"># 混合使用空格和制表符</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">another_function</span>():<br>
+                                &nbsp;&nbsp;<span class="code-comment"># 2个空格</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 4个空格</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"World"</span>)
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 正确做法</h4>
+                            <div class="code-block good-code">
+                                <span class="code-comment"># 始终使用4个空格缩进</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">function</span>():<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 4个空格</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"Hello"</span>)<br><br>
+                                <span class="code-keyword">if</span> True:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"Indentation"</span>)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">for</span> i <span class="code-keyword">in</span> range(5):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(i)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-box p-4 rounded-lg mt-4">
+                        <p class="text-gray-700">
+                            <strong>提示：</strong>在编辑器中设置"制表符转换为空格"，确保所有缩进都使用4个空格。
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 行长度 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-arrows-h text-blue-500 mr-2"></i>
+                        行长度
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 错误做法</h4>
+                            <div class="code-block bad-code">
+                                <span class="code-comment"># 一行超过79个字符</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">long_function_name</span>(parameter_one, parameter_two, parameter_three, parameter_four, parameter_five):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 这行代码太长了，超过了79个字符的限制</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"This is a very long string that exceeds the recommended line length limit of 79 characters"</span>)
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 正确做法</h4>
+                            <div class="code-block good-code">
+                                <span class="code-comment"># 使用括号换行</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">long_function_name</span>(<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;parameter_one, parameter_two,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;parameter_three, parameter_four,<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;parameter_five<br>
+                                ):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">print</span>(<span class="code-string">"Short line"</span>)<br><br>
+                                <span class="code-comment"># 长字符串使用三引号</span><br>
+                                long_string = (<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"This is a very long string that "</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"is split across multiple lines"</span><br>
+                                )
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="warning-box p-4 rounded-lg mt-4">
+                        <p class="text-gray-700">
+                            <strong>注意：</strong>
+                            - 代码行长度限制为79个字符
+                            - 文档字符串和注释限制为72个字符
+                            - 可以使用括号、逗号或反斜杠进行换行
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 空白行 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-minus text-purple-500 mr-2"></i>
+                        空白行
+                    </h3>
+                    
+                    <div class="code-block good-code">
+                        <span class="code-comment"># 顶级函数和类之间用两个空白行</span><br>
+                        <span class="code-keyword">class</span> <span class="code-function">MyClass</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br><br>
+                        <span class="code-keyword">def</span> <span class="code-function">top_level_function</span>():<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                        <span class="code-comment"># 类内方法之间用一个空白行</span><br>
+                        <span class="code-keyword">class</span> <span class="code-function">AnotherClass</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-function">method_one</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-function">method_two</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 命名规范 -->
+        <section id="naming-conventions" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-blue-200 pb-2">
+                    <i class="fa fa-tag text-blue-500 mr-2"></i>
+                    命名规范
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            推荐命名方式
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">变量和函数</h4>
+                                <p class="text-gray-600">snake_case（小写字母，下划线分隔）</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">user_name, get_data()</code>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">类和异常</h4>
+                                <p class="text-gray-600">PascalCase（首字母大写）</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">UserProfile, ValueError</code>
+                            </div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <h4 class="font-bold text-dark">常量</h4>
+                                <p class="text-gray-600">UPPER_SNAKE_CASE（全大写，下划线分隔）</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">MAX_SIZE, DEFAULT_TIMEOUT</code>
+                            </div>
+                            <div class="p-3 bg-yellow-50 rounded-lg">
+                                <h4 class="font-bold text-dark">模块和包</h4>
+                                <p class="text-gray-600">小写字母，尽量简短</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">utils, data_processing</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            避免的命名方式
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <h4 class="font-bold text-dark">避免使用单字符名称</h4>
+                                <p class="text-gray-600">除了计数器和迭代器</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">x, y, i（除非在循环中）</code>
+                            </div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <h4 class="font-bold text-dark">避免使用Python关键字</h4>
+                                <p class="text-gray-600">class, def, if, else等</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">class, def, True, False</code>
+                            </div>
+                            <div class="p-3 bg-red-50 rounded-lg">
+                                <h4 class="font-bold text-dark">避免使用易混淆的名称</h4>
+                                <p class="text-gray-600">l（小写L）, O（大写O）, I（大写I）</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded">l, O, I（容易与1, 0混淆）</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-code text-purple-500 mr-2"></i>
+                        命名示例
+                    </h3>
+                    <div class="code-block">
+                        <span class="code-comment"># 正确的命名方式</span><br>
+                        <span class="code-keyword">class</span> <span class="code-function">UserAuthentication</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, user_name, password):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.user_name = user_name<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.password = password<br><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-function">validate_credentials</span>(self):<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                        <span class="code-comment"># 常量定义</span><br>
+                        MAX_LOGIN_ATTEMPTS = 5<br>
+                        DEFAULT_TIMEOUT = 30<br>
+                        API_VERSION = <span class="code-string">"v1.0"</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 注释规范 -->
+        <section id="comments" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-yellow-200 pb-2">
+                    <i class="fa fa-comment text-warm mr-2"></i>
+                    注释规范
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            文档字符串（Docstrings）
+                        </h3>
+                        <div class="code-block good-code">
+                            <span class="code-keyword">def</span> <span class="code-function">calculate_area</span>(length, width):<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">"""计算矩形的面积<br><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;参数:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;length -- 矩形的长度 (float)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;width -- 矩形的宽度 (float)<br><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;返回:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;矩形的面积 (float)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"""</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> length * width<br><br>
+                            <span class="code-keyword">class</span> <span class="code-function">Rectangle</span>:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">"""表示矩形的类<br><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;属性:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;length -- 矩形的长度 (float)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;width -- 矩形的宽度 (float)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;"""</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, length, width):<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.length = length<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.width = width
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-paragraph text-blue-500 mr-2"></i>
+                            行内注释
+                        </h3>
+                        <div class="code-block good-code">
+                            <span class="code-comment"># 计算总销售额</span><br>
+                            total_sales = sum(sales_data)<br><br>
+                            <span class="code-comment"># 过滤掉无效数据</span><br>
+                            valid_data = [item <span class="code-keyword">for</span> item <span class="code-keyword">in</span> raw_data <span class="code-keyword">if</span> item <span class="code-keyword">is</span> <span class="code-keyword">not</span> <span class="code-keyword">None</span>]<br><br>
+                            <span class="code-comment"># 使用二分查找提高性能</span><br>
+                            index = bisect.bisect_left(sorted_list, target_value)<br><br>
+                            <span class="code-comment"># 等待用户输入，最多重试3次</span><br>
+                            <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> range(3):<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;user_input = <span class="code-function">input</span>(<span class="code-string">"请输入: "</span>)<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> user_input:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">break</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-exclamation-triangle text-purple-500 mr-2"></i>
+                        注释最佳实践
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 好的注释</h4>
+                            <ul class="space-y-2 text-gray-700">
+                                <li>• 解释为什么这样做，而不是做了什么</li>
+                                <li>• 说明复杂的算法或业务逻辑</li>
+                                <li>• 标记临时或需要改进的代码</li>
+                                <li>• 提供外部参考或文档链接</li>
+                                <li>• 记录重要的决策或权衡</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 坏的注释</h4>
+                            <ul class="space-y-2 text-gray-700">
+                                <li>• 重复代码本身已经说明的内容</li>
+                                <li>• 注释明显的代码</li>
+                                <li>• 过时的注释</li>
+                                <li>• 模糊或不明确的注释</li>
+                                <li>• 太多的注释掩盖了代码</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="danger-box p-4 rounded-lg mt-4">
+                        <p class="text-gray-700">
+                            <strong>警告：</strong>注释应该随着代码的更新而更新。过时的注释比没有注释更糟糕，因为它们会误导读者。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 编程建议 -->
+        <section id="programming-recommendations" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-purple-200 pb-2">
+                    <i class="fa fa-lightbulb-o text-purple-500 mr-2"></i>
+                    编程建议
+                </h2>
+                
+                <!-- 表达式和语句 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-code text-blue-500 mr-2"></i>
+                        表达式和语句
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 避免</h4>
+                            <div class="code-block bad-code">
+                                <span class="code-comment"># 复合语句</span><br>
+                                <span class="code-keyword">if</span> foo == <span class="code-string">'blah'</span>: do_blah_thing()<br><br>
+                                <span class="code-comment"># 否定条件</span><br>
+                                <span class="code-keyword">if</span> <span class="code-keyword">not</span> foo is <span class="code-keyword">None</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                                <span class="code-comment"> # 比较布尔值</span><br>
+                                <span class="code-keyword">if</span> flag == <span class="code-keyword">True</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                                <span class="code-comment"># 不必要的括号</span><br>
+                                <span class="code-keyword">if</span> (x < 10):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 推荐</h4>
+                            <div class="code-block good-code">
+                                <span class="code-comment"># 分开写语句</span><br>
+                                <span class="code-keyword">if</span> foo == <span class="code-string">'blah'</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">do_blah_thing</span>()<br><br>
+                                <span class="code-comment"># 正面条件</span><br>
+                                <span class="code-keyword">if</span> foo <span class="code-keyword">is</span> <span class="code-keyword">not None</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                                <span class="code-comment"># 直接使用布尔值</span><br>
+                                <span class="code-keyword">if</span> flag:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                                <span class="code-comment"># 去掉不必要的括号</span><br>
+                                <span class="code-keyword">if</span> x < 10:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 导入语句 -->
+                <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                        <i class="fa fa-download text-green-500 mr-2"></i>
+                        导入语句
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 错误做法</h4>
+                            <div class="code-block bad-code">
+                                <span class="code-comment"># 导入顺序错误</span><br>
+                                <span class="code-keyword">import</span> mymodule<br>
+                                <span class="code-keyword">import</span> sys<br>
+                                <span class="code-keyword">import</span> os<br><br>
+                                <span class="code-comment"># 通配符导入</span><br>
+                                <span class="code-keyword">from</span> module <span class="code-keyword">import</span> *<br><br>
+                                <span class="code-comment"># 导入在函数内</span><br>
+                                <span class="code-keyword">def</span> <span class="code-function">function</span>():<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">import</span> module<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;module.<span class="code-function">do_something</span>()
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 正确做法</h4>
+                            <div class="code-block good-code">
+                                <span class="code-comment"># 导入顺序：标准库、第三方库、本地库</span><br>
+                                <span class="code-keyword">import</span> os<br>
+                                <span class="code-keyword">import</span> sys<br><br>
+                                <span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np<br>
+                                <span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd<br><br>
+                                <span class="code-keyword">import</span> mymodule<br>
+                                <span class="code-keyword">from</span> mypackage <span class="code-keyword">import</span> mysubmodule<br><br>
+                                <span class="code-comment"># 明确导入</span><br>
+                                <span class="code-keyword">from</span> module <span class="code-keyword">import</span> (function1, function2, Class1)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-box p-4 rounded-lg mt-4">
+                        <p class="text-gray-700">
+                            <strong>导入顺序：</strong>
+                            1. 标准库导入
+                            2. 第三方库导入
+                            3. 本地库导入
+                            <br>
+                            每组导入之间用空白行分隔。
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 异常处理 -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-shield text-purple-500 mr-2"></i>
+                        异常处理
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-red-600 mb-2">❌ 避免</h4>
+                            <div class="code-block bad-code">
+                                <span class="code-comment"># 空except</span><br>
+                                <span class="code-keyword">try</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">dangerous_operation</span>()<br>
+                                <span class="code-keyword">except</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">pass</span><br><br>
+                                <span class="code-comment"># 捕获所有异常</span><br>
+                                <span class="code-keyword">try</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">dangerous_operation</span>()<br>
+                                <span class="code-keyword">except</span> Exception:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">log_error</span>()<br><br>
+                                <span class="code-comment"># 模糊的异常处理</span><br>
+                                <span class="code-keyword">try</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">dangerous_operation</span>()<br>
+                                <span class="code-keyword">except</span> (ValueError, TypeError, IOError):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">handle_error</span>()
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-green-600 mb-2">✅ 推荐</h4>
+                            <div class="code-block good-code">
+                                <span class="code-comment"># 捕获特定异常</span><br>
+                                <span class="code-keyword">try</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">dangerous_operation</span>()<br>
+                                <span class="code-keyword">except</span> FileNotFoundError:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">handle_missing_file</span>()<br>
+                                <span class="code-keyword">except</span> PermissionError:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">handle_permission_error</span>()<br><br>
+                                <span class="code-comment"># 适当的异常处理</span><br>
+                                <span class="code-keyword">try</span>:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">dangerous_operation</span>()<br>
+                                <span class="code-keyword">except</span> <span class="code-function">SpecificError</span> <span class="code-keyword">as</span> e:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">log_error</span>(f<span class="code-string">"Error: {e}"</span>)<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-function">handle_specific_error</span>(e)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 工具推荐 -->
+        <section id="tools" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-teal-50 to-cyan-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-teal-200 pb-2">
+                    <i class="fa fa-wrench text-teal-500 mr-2"></i>
+                    工具推荐
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check text-green-500 mr-2"></i>
+                            代码检查工具
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">flake8</h4>
+                                <p class="text-gray-600 text-sm">
+                                    集成了pycodestyle、pyflakes和mccabe的综合代码检查工具
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install flake8</code>
+                            </div>
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">pylint</h4>
+                                <p class="text-gray-600 text-sm">
+                                    功能强大的代码分析工具，能够检测代码质量和错误
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install pylint</code>
+                            </div>
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <h4 class="font-bold text-dark">pycodestyle</h4>
+                                <p class="text-gray-600 text-sm">
+                                    专门检查PEP 8合规性的工具
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install pycodestyle</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                            <i class="fa fa-magic text-blue-500 mr-2"></i>
+                            代码格式化工具
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-bold text-dark">black</h4>
+                                <p class="text-gray-600 text-sm">
+                                    固执己见的代码格式化工具，自动格式化代码符合PEP 8
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install black</code>
+                            </div>
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-bold text-dark">yapf</h4>
+                                <p class="text-gray-600 text-sm">
+                                    Google开发的代码格式化工具，可配置性强
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install yapf</code>
+                            </div>
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <h4 class="font-bold text-dark">autopep8</h4>
+                                <p class="text-gray-600 text-sm">
+                                    自动修复PEP 8违规问题的工具
+                                </p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-xs">pip install autopep8</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-purple-600">
+                        <i class="fa fa-code text-purple-500 mr-2"></i>
+                        编辑器集成
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <i class="fa fa-pycharm text-2xl text-purple-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">PyCharm</h4>
+                            <p class="text-gray-600 text-sm">内置PEP 8检查和自动格式化</p>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <i class="fa fa-code text-2xl text-blue-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">VS Code</h4>
+                            <p class="text-gray-600 text-sm">安装Python插件支持PEP 8检查</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <i class="fa fa-terminal text-2xl text-green-600 mb-2"></i>
+                            <h4 class="font-bold text-dark">Vim/Emacs</h4>
+                            <p class="text-gray-600 text-sm">通过插件支持PEP 8检查</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tip-box p-4 rounded-lg mt-6">
+                        <h4 class="font-bold text-dark mb-2">
+                            <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+                            推荐配置
+                        </h4>
+                        <p class="text-gray-700 mb-2">
+                            在项目根目录创建 <code class="bg-gray-100 px-2 py-1 rounded">.flake8</code> 文件：
+                        </p>
+                        <div class="code-block">
+                            [flake8]<br>
+                            max-line-length = 79<br>
+                            ignore = E203, E266, E501, W503<br>
+                            max-complexity = 10<br>
+                            exclude = __pycache__, .git, .hg, .tox, .eggs, *.egg
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 常见错误 -->
+        <section id="common-mistakes" class="mb-16 rule-card">
+            <div class="bg-gradient-to-r from-red-50 to-orange-50 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-red-200 pb-2">
+                    <i class="fa fa-exclamation-triangle text-red-500 mr-2"></i>
+                    常见错误和最佳实践
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-red-600">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            常见错误
+                        </h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>使用制表符而不是空格进行缩进</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>行长度超过79个字符</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>使用驼峰命名法命名变量和函数</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>导入语句顺序混乱</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>空的except语句</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>注释明显的代码</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times text-red-500 mr-2 mt-1"></i>
+                                <span>使用通配符导入</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-green-600">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            最佳实践
+                        </h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>始终使用4个空格进行缩进</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>保持行长度不超过79个字符</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>使用有意义的变量和函数名称</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>按标准顺序组织导入语句</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>捕获特定的异常类型</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>编写清晰、有用的文档字符串</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check text-green-500 mr-2 mt-1"></i>
+                                <span>使用代码检查工具保持代码质量</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-[clamp(1.2rem,3vw,1.4rem)] font-bold text-dark mb-4 text-blue-600">
+                        <i class="fa fa-quote-left text-blue-500 mr-2"></i>
+                        Python之禅
+                    </h3>
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <p class="text-gray-700 italic mb-2">
+                            "优美胜于丑陋<br>
+                            明了胜于晦涩<br>
+                            简洁胜于复杂<br>
+                            复杂胜于凌乱<br>
+                            扁平胜于嵌套<br>
+                            间隔胜于紧凑<br>
+                            可读性很重要"
+                        </p>
+                        <p class="text-gray-500 text-sm">
+                            —— Tim Peters, Python之禅
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 总结 -->
+        <section class="mb-16">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 p-8 rounded-xl">
+                <h2 class="text-[clamp(1.5rem,4vw,2rem)] font-bold text-dark mb-6 border-b-2 border-primary/20 pb-2">
+                    <i class="fa fa-flag-checkered text-primary mr-2"></i>
+                    总结
+                </h2>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-4">
+                        遵循PEP 8编码规范是编写高质量Python代码的基础。通过本指南的学习，你应该掌握了：
+                    </p>
+                    
+                    <ul class="space-y-2 text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 mb-6">
+                        <li>• 正确的代码布局和缩进方式</li>
+                        <li>• 各种命名规范的使用场景</li>
+                        <li>• 编写清晰、有用的注释</li>
+                        <li>• 避免常见的编程错误</li>
+                        <li>• 使用工具保持代码质量</li>
+                    </ul>
+                    
+                    <div class="tip-box p-4 rounded-lg mb-4">
+                        <p class="text-gray-700 font-bold">
+                            <i class="fa fa-lightbulb-o text-primary mr-2"></i>
+                            记住：PEP 8是指南，不是严格的规则。在某些情况下，为了代码的可读性和实用性，可以适当偏离规范。
+                        </p>
+                    </div>
+                    
+                    <p class="text-[clamp(1rem,2.5vw,1.2rem)] leading-relaxed text-gray-800 font-bold text-center text-primary">
+                        最重要的是保持代码的一致性和可读性，这才是PEP 8的真正目标！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-8">
+            <div class="bg-gray-50 p-6 rounded-xl">
+                <p class="text-[clamp(1rem,2.5vw,1.2rem)] text-gray-600 mb-2">
+                    <i class="fa fa-book text-gray-400 mr-2"></i>
+                    Python PEP 8编码规范完整指南
+                </p>
+                <p class="text-[clamp(0.9rem,2vw,1rem)] text-gray-500">
+                    基于官方PEP 8文档整理 | 生成时间：2026年2月6日
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 平滑滚动和动画效果脚本 -->
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 添加滚动时的淡入效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有章节
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            observer.observe(section);
+        });
+
+        // 第一个章节立即显示
+        document.querySelector('section').style.opacity = '1';
+        document.querySelector('section').style.transform = 'translateY(0)';
+
+        // 卡片悬停效果增强
+        document.querySelectorAll('.rule-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0) scale(1)';
+            });
+        });
+
+        // 代码块高亮效果
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.01)';
+                this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+            });
+            
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
