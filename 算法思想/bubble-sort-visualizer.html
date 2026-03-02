@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冒泡排序可视化演示</title>
+    <!-- 引入外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        neutral: '#64748b',
+                        comparing: '#f97316',
+                        sorted: '#10b981',
+                        swapping: '#ef4444',
+                        background: '#f8fafc',
+                        card: '#ffffff',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        code: ['Fira Code', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-height {
+                transition-property: height;
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                transition-duration: 300ms;
+            }
+            .bar-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+            .stat-card {
+                @apply bg-card rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100;
+            }
+            .control-btn {
+                @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2;
+            }
+            .control-btn-primary {
+                @apply bg-primary text-white hover:bg-primary/90 active:bg-primary/80;
+            }
+            .control-btn-secondary {
+                @apply bg-gray-100 text-gray-800 hover:bg-gray-200 active:bg-gray-300;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-background text-gray-800 min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-exchange text-primary text-2xl"></i>
+                <h1 class="text-[clamp(1.25rem,3vw,1.75rem)] font-bold text-gray-800">冒泡排序可视化</h1>
+            </div>
+            <nav class="hidden md:flex items-center gap-6 mt-4 md:mt-0">
+                <a href="#visualization" class="text-gray-600 hover:text-primary transition-colors">可视化</a>
+                <a href="#code" class="text-gray-600 hover:text-primary transition-colors">代码实现</a>
+                <a href="#explanation" class="text-gray-600 hover:text-primary transition-colors">算法说明</a>
+            </nav>
+            <button class="md:hidden text-gray-600 hover:text-primary" id="menu-toggle">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="container mx-auto px-4 py-3 flex flex-col gap-3">
+                <a href="#visualization" class="text-gray-600 hover:text-primary py-2 transition-colors">可视化</a>
+                <a href="#code" class="text-gray-600 hover:text-primary py-2 transition-colors">代码实现</a>
+                <a href="#explanation" class="text-gray-600 hover:text-primary py-2 transition-colors">算法说明</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <!-- 可视化区域 -->
+        <section id="visualization" class="mb-12">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- 左侧控制面板 -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="bg-card rounded-xl shadow-md p-5 border border-gray-100">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-100">控制面板</h2>
+                        
+                        <!-- 控制按钮组 -->
+                        <div class="grid grid-cols-2 gap-3 mb-5">
+                            <button id="new-array" class="control-btn control-btn-secondary">
+                                <i class="fa fa-refresh"></i> 新数组
+                            </button>
+                            <button id="start-sort" class="control-btn control-btn-primary">
+                                <i class="fa fa-play"></i> 开始
+                            </button>
+                            <button id="pause-sort" class="control-btn control-btn-secondary" disabled>
+                                <i class="fa fa-pause"></i> 暂停
+                            </button>
+                            <button id="reset-sort" class="control-btn control-btn-secondary">
+                                <i class="fa fa-stop"></i> 重置
+                            </button>
+                        </div>
+                        
+                        <!-- 显示样式切换 -->
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">显示样式</label>
+                            <div class="flex items-center gap-4">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="display-style" value="bar" checked class="sr-only peer">
+                                    <div class="w-9 h-9 border-2 border-gray-300 peer-checked:border-primary rounded flex items-center justify-center transition-all">
+                                        <i class="fa fa-columns text-gray-500 peer-checked:text-primary"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm text-gray-700">柱状</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="display-style" value="cylinder" class="sr-only peer">
+                                    <div class="w-9 h-9 border-2 border-gray-300 peer-checked:border-primary rounded flex items-center justify-center transition-all">
+                                        <i class="fa fa-circle-o text-gray-500 peer-checked:text-primary"></i>
+                                    </div>
+                                    <span class="ml-2 text-sm text-gray-700">圆柱</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 数组大小滑块 -->
+                        <div class="mb-5">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="array-size" class="text-sm font-medium text-gray-700">数组大小: <span id="array-size-value">20</span></label>
+                            </div>
+                            <input 
+                                type="range" 
+                                id="array-size" 
+                                min="5" 
+                                max="50" 
+                                value="20" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                            >
+                        </div>
+                        
+                        <!-- 排序速度滑块 -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="sort-speed" class="text-sm font-medium text-gray-700">排序速度: <span id="sort-speed-value">100</span>ms</label>
+                            </div>
+                            <input 
+                                type="range" 
+                                id="sort-speed" 
+                                min="10" 
+                                max="500" 
+                                value="100" 
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 统计信息 -->
+                    <div class="space-y-4">
+                        <h2 class="text-lg font-semibold mb-2">统计信息</h2>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm mb-1">比较次数</div>
+                            <div class="text-2xl font-bold text-primary" id="comparison-count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm mb-1">交换次数</div>
+                            <div class="text-2xl font-bold text-swapping" id="swap-count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="text-gray-500 text-sm mb-1">数组大小</div>
+                            <div class="text-2xl font-bold text-neutral" id="current-array-size">20</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 中间可视化区域 -->
+                <div class="lg:col-span-9">
+                    <div class="bg-card rounded-xl shadow-md p-5 border border-gray-100 h-full">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b border-gray-100">排序过程可视化</h2>
+                        <div class="flex items-end justify-center gap-[2px] md:gap-[4px] h-[400px] w-full p-2 md:p-4 overflow-x-auto" id="visualization-container">
+                            <!-- 排序可视化元素将在这里动态生成 -->
+                        </div>
+                        <div class="flex flex-wrap gap-4 mt-4 justify-center text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-neutral rounded-sm"></div>
+                                <span>未排序</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-comparing rounded-sm"></div>
+                                <span>比较中</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-swapping rounded-sm"></div>
+                                <span>交换中</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-4 bg-sorted rounded-sm"></div>
+                                <span>已排序</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 代码展示区域 -->
+        <section id="code" class="mb-12">
+            <div class="bg-card rounded-xl shadow-md p-5 border border-gray-100">
+                <h2 class="text-xl font-semibold mb-4">冒泡排序代码实现</h2>
+                
+                <!-- 代码标签页 -->
+                <div class="border-b border-gray-200 mb-4">
+                    <div class="flex overflow-x-auto space-x-1 md:space-x-4">
+                        <button class="code-tab py-2 px-4 border-b-2 border-primary text-primary font-medium" data-lang="c">C</button>
+                        <button class="code-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-lang="python">Python</button>
+                        <button class="code-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-lang="go">Go</button>
+                        <button class="code-tab py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-lang="java">Java</button>
+                    </div>
+                </div>
+                
+                <!-- 代码内容区域 -->
+                <div class="code-content">
+                    <!-- C代码 -->
+                    <div class="code-block font-code text-sm md:text-base" data-lang="c">
+<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>void bubbleSort(int arr[], int n) {
+    int i, j;
+    for (i = 0; i &lt; n-1; i++) {
+        // 最后i个元素已经就位
+        for (j = 0; j &lt; n-i-1; j++) {
+            // 从0到n-i-1遍历
+            if (arr[j] &gt; arr[j+1]) {
+                // 交换元素
+                int temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = temp;
+            }
+        }
+    }
+}</code></pre>
+                    </div>
+                    
+                    <!-- Python代码 -->
+                    <div class="code-block font-code text-sm md:text-base hidden" data-lang="python">
+<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>def bubble_sort(arr):
+    n = len(arr)
+    # 遍历所有数组元素
+    for i in range(n):
+        # 最后i个元素已经就位
+        for j in range(0, n-i-1):
+            # 从0到n-i-1遍历
+            if arr[j] &gt; arr[j+1]:
+                # 交换元素
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+    return arr</code></pre>
+                    </div>
+                    
+                    <!-- Go代码 -->
+                    <div class="code-block font-code text-sm md:text-base hidden" data-lang="go">
+<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>func bubbleSort(arr []int) {
+    n := len(arr)
+    for i := 0; i &lt; n-1; i++ {
+        // 最后i个元素已经就位
+        for j := 0; j &lt; n-i-1; j++ {
+            // 从0到n-i-1遍历
+            if arr[j] &gt; arr[j+1] {
+                // 交换元素
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+            }
+        }
+    }
+}</code></pre>
+                    </div>
+                    
+                    <!-- Java代码 -->
+                    <div class="code-block font-code text-sm md:text-base hidden" data-lang="java">
+<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>public class BubbleSort {
+    void bubbleSort(int arr[]) {
+        int n = arr.length;
+        for (int i = 0; i &lt; n-1; i++) {
+            // 最后i个元素已经就位
+            for (int j = 0; j &lt; n-i-1; j++) {
+                // 从0到n-i-1遍历
+                if (arr[j] &gt; arr[j+1]) {
+                    // 交换元素
+                    int temp = arr[j];
+                    arr[j] = arr[j+1];
+                    arr[j+1] = temp;
+                }
+            }
+        }
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 算法说明区域 -->
+        <section id="explanation" class="mb-12">
+            <div class="bg-card rounded-xl shadow-md p-5 border border-gray-100">
+                <h2 class="text-xl font-semibold mb-6">冒泡排序算法说明</h2>
+                
+                <!-- 算法原理 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium mb-3 text-primary">算法原理</h3>
+                    <p class="mb-4 text-gray-700 leading-relaxed">
+                        冒泡排序（Bubble Sort）是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个相邻的元素，如果它们的顺序错误就把它们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。
+                    </p>
+                    <p class="text-gray-700 leading-relaxed">
+                        这个算法的名字由来是因为越小的元素会经由交换慢慢"浮"到数列的顶端，就如同水中的气泡一样向上冒，因此得名冒泡排序。
+                    </p>
+                </div>
+                
+                <!-- 复杂度分析 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium mb-3 text-primary">复杂度分析</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">时间复杂度</h4>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>最佳情况：<span class="font-semibold">O(n)</span>（当数组已经排序时，使用优化版本）</li>
+                                <li>平均情况：<span class="font-semibold">O(n²)</span></li>
+                                <li>最坏情况：<span class="font-semibold">O(n²)</span></li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium mb-2">空间复杂度</h4>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>额外空间：<span class="font-semibold">O(1)</span></li>
+                                <li>原地排序算法，不需要额外的存储空间</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 与其他排序算法的对比 -->
+                <div class="mb-8 overflow-x-auto">
+                    <h3 class="text-lg font-medium mb-3 text-primary">与其他排序算法的对比</h3>
+                    <table class="min-w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-200 px-4 py-2 text-left">排序算法</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left">最佳时间复杂度</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left">平均时间复杂度</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left">最坏时间复杂度</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left">空间复杂度</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left">稳定性</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">冒泡排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(1)</td>
+                                <td class="border border-gray-200 px-4 py-2">稳定</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">选择排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(1)</td>
+                                <td class="border border-gray-200 px-4 py-2">不稳定</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">插入排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(1)</td>
+                                <td class="border border-gray-200 px-4 py-2">稳定</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">快速排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n²)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">不稳定</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">归并排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n)</td>
+                                <td class="border border-gray-200 px-4 py-2">稳定</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="border border-gray-200 px-4 py-2 font-medium">堆排序</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(n log n)</td>
+                                <td class="border border-gray-200 px-4 py-2">O(1)</td>
+                                <td class="border border-gray-200 px-4 py-2">不稳定</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 适用场景 -->
+                <div>
+                    <h3 class="text-lg font-medium mb-3 text-primary">适用场景</h3>
+                    <p class="mb-3 text-gray-700">冒泡排序由于其简单性和稳定性，在某些特定场景下仍然有用：</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 mb-4">
+                        <li>对于几乎已经排序的数据，优化版的冒泡排序性能良好</li>
+                        <li>数据量很小的情况，简单性比效率更重要时</li>
+                        <li>教学场景，用于解释排序算法的基本原理</li>
+                        <li>需要稳定排序且实现简单的场景</li>
+                    </ul>
+                    <p class="text-gray-700">
+                        然而，对于大规模数据集，冒泡排序通常不是一个好的选择，因为其时间复杂度为O(n²)，效率较低。在这种情况下，应该选择快速排序、归并排序等更高效的算法。
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-6">
+        <div class="container mx-auto px-4 text-center text-gray-600 text-sm">
+            <p>冒泡排序可视化演示 &copy; 2023</p>
+            <p class="mt-1">一个直观展示冒泡排序算法工作原理的交互式工具</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript 代码 -->
+    <script>
+        // 全局变量
+        let array = [];
+        let arraySize = 20;
+        let sortSpeed = 100; // 毫秒
+        let isSorting = false;
+        let isPaused = false;
+        let comparisonCount = 0;
+        let swapCount = 0;
+        let animationId = null;
+        let displayStyle = 'bar';
+        
+        // DOM 元素
+        const visualizationContainer = document.getElementById('visualization-container');
+        const arraySizeSlider = document.getElementById('array-size');
+        const arraySizeValue = document.getElementById('array-size-value');
+        const sortSpeedSlider = document.getElementById('sort-speed');
+        const sortSpeedValue = document.getElementById('sort-speed-value');
+        const comparisonCountEl = document.getElementById('comparison-count');
+        const swapCountEl = document.getElementById('swap-count');
+        const currentArraySizeEl = document.getElementById('current-array-size');
+        const newArrayBtn = document.getElementById('new-array');
+        const startSortBtn = document.getElementById('start-sort');
+        const pauseSortBtn = document.getElementById('pause-sort');
+        const resetSortBtn = document.getElementById('reset-sort');
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const codeTabs = document.querySelectorAll('.code-tab');
+        const codeBlocks = document.querySelectorAll('.code-block');
+        const displayStyleRadios = document.querySelectorAll('input[name="display-style"]');
+        
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            createNewArray();
+            setupEventListeners();
+        });
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 数组大小滑块
+            arraySizeSlider.addEventListener('input', (e) => {
+                if (!isSorting) {
+                    arraySize = parseInt(e.target.value);
+                    arraySizeValue.textContent = arraySize;
+                    currentArraySizeEl.textContent = arraySize;
+                    createNewArray();
+                }
+            });
+            
+            // 排序速度滑块
+            sortSpeedSlider.addEventListener('input', (e) => {
+                sortSpeed = parseInt(e.target.value);
+                sortSpeedValue.textContent = sortSpeed;
+            });
+            
+            // 按钮事件
+            newArrayBtn.addEventListener('click', createNewArray);
+            startSortBtn.addEventListener('click', startSort);
+            pauseSortBtn.addEventListener('click', togglePause);
+            resetSortBtn.addEventListener('click', resetSort);
+            
+            // 移动端菜单
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 代码标签页切换
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const lang = tab.getAttribute('data-lang');
+                    
+                    // 更新标签样式
+                    codeTabs.forEach(t => {
+                        t.classList.remove('border-primary', 'text-primary');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    tab.classList.remove('border-transparent', 'text-gray-500');
+                    tab.classList.add('border-primary', 'text-primary');
+                    
+                    // 显示对应代码块
+                    codeBlocks.forEach(block => {
+                        if (block.getAttribute('data-lang') === lang) {
+                            block.classList.remove('hidden');
+                        } else {
+                            block.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+            
+            // 显示样式切换
+            displayStyleRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (!isSorting) {
+                        displayStyle = e.target.value;
+                        renderArray();
+                    }
+                });
+            });
+            
+            // 滚动时导航栏效果
+            window.addEventListener('scroll', () => {
+                const header = document.querySelector('header');
+                if (window.scrollY > 10) {
+                    header.classList.add('py-2', 'shadow');
+                    header.classList.remove('py-4');
+                } else {
+                    header.classList.add('py-4');
+                    header.classList.remove('py-2', 'shadow');
+                }
+            });
+        }
+        
+        // 创建新数组
+        function createNewArray() {
+            resetSort();
+            array = [];
+            for (let i = 0; i < arraySize; i++) {
+                // 生成1到100的随机数
+                array.push(Math.floor(Math.random() * 100) + 1);
+            }
+            renderArray();
+            currentArraySizeEl.textContent = arraySize;
+        }
+        
+        // 渲染数组
+        function renderArray(highlightIndices = [], sortedIndices = []) {
+            visualizationContainer.innerHTML = '';
+            
+            // 计算每个元素的宽度
+            const elementWidth = Math.max(10, (visualizationContainer.clientWidth - (arraySize * 4)) / arraySize);
+            
+            array.forEach((value, index) => {
+                // 计算高度（最大高度为容器高度的90%）
+                const maxHeight = visualizationContainer.clientHeight * 0.9;
+                const height = (value / 100) * maxHeight;
+                
+                // 创建元素容器
+                const element = document.createElement('div');
+                element.className = 'relative flex flex-col items-center';
+                element.style.width = `${elementWidth}px`;
+                
+                // 创建柱状/圆柱元素
+                const bar = document.createElement('div');
+                
+                // 根据显示样式设置不同的类
+                if (displayStyle === 'bar') {
+                    bar.className = 'bar-shadow transition-all duration-200 ease-out';
+                    bar.style.width = '100%';
+                    bar.style.borderRadius = '4px 4px 0 0';
+                } else { // cylinder
+                    bar.className = 'bar-shadow transition-all duration-200 ease-out';
+                    bar.style.width = '80%';
+                    bar.style.borderRadius = '50% 50% 0 0';
+                }
+                
+                // 设置高度和背景色
+                bar.style.height = `${height}px`;
+                
+                // 确定颜色
+                if (sortedIndices.includes(index)) {
+                    bar.style.backgroundColor = '#10b981'; // sorted
+                } else if (highlightIndices.includes(index)) {
+                    // 如果是两个高亮元素且正在比较
+                    if (highlightIndices.length === 2 && highlightIndices[0] === index && array[index] > array[highlightIndices[1]]) {
+                        bar.style.backgroundColor = '#ef4444'; // swapping
+                    } else {
+                        bar.style.backgroundColor = '#f97316'; // comparing
+                    }
+                } else {
+                    bar.style.backgroundColor = '#64748b'; // neutral
+                }
+                
+                // 添加数值标签
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'text-xs mt-1 text-gray-600 font-medium';
+                valueLabel.textContent = value;
+                
+                // 组合元素
+                element.appendChild(bar);
+                element.appendChild(valueLabel);
+                visualizationContainer.appendChild(element);
+            });
+        }
+        
+        // 开始排序
+        function startSort() {
+            if (isSorting && isPaused) {
+                // 继续排序
+                isPaused = false;
+                continueSorting();
+            } else if (!isSorting) {
+                // 开始新的排序
+                isSorting = true;
+                isPaused = false;
+                comparisonCount = 0;
+                swapCount = 0;
+                updateCounters();
+                
+                // 更新按钮状态
+                startSortBtn.disabled = true;
+                newArrayBtn.disabled = true;
+                arraySizeSlider.disabled = true;
+                pauseSortBtn.disabled = false;
+                
+                // 开始冒泡排序
+                bubbleSort(0, 0);
+            }
+        }
+        
+        // 暂停/继续排序
+        function togglePause() {
+            if (isSorting) {
+                if (isPaused) {
+                    // 继续排序
+                    isPaused = false;
+                    pauseSortBtn.innerHTML = '<i class="fa fa-pause"></i> 暂停';
+                    continueSorting();
+                } else {
+                    // 暂停排序
+                    isPaused = true;
+                    pauseSortBtn.innerHTML = '<i class="fa fa-play"></i> 继续';
+                    if (animationId) {
+                        clearTimeout(animationId);
+                        animationId = null;
+                    }
+                }
+            }
+        }
+        
+        // 继续排序
+        function continueSorting() {
+            if (isSorting && !isPaused) {
+                // 从当前状态继续排序
+                const i = window.currentI || 0;
+                const j = window.currentJ || 0;
+                bubbleSort(i, j);
+            }
+        }
+        
+        // 重置排序
+        function resetSort() {
+            if (isSorting) {
+                isSorting = false;
+                isPaused = false;
+                if (animationId) {
+                    clearTimeout(animationId);
+                    animationId = null;
+                }
+            }
+            
+            // 重置计数器
+            comparisonCount = 0;
+            swapCount = 0;
+            updateCounters();
+            
+            // 重置按钮状态
+            startSortBtn.disabled = false;
+            newArrayBtn.disabled = false;
+            arraySizeSlider.disabled = false;
+            pauseSortBtn.disabled = true;
+            pauseSortBtn.innerHTML = '<i class="fa fa-pause"></i> 暂停';
+            
+            // 重新渲染数组
+            renderArray();
+        }
+        
+        // 冒泡排序算法实现（带可视化）
+        async function bubbleSort(i, j) {
+            // 保存当前索引，用于暂停后继续
+            window.currentI = i;
+            window.currentJ = j;
+            
+            // 如果排序已完成
+            if (i >= array.length - 1) {
+                // 所有元素都已排序
+                renderArray([], Array.from({length: array.length}, (_, k) => k));
+                isSorting = false;
+                
+                // 重置按钮状态
+                startSortBtn.disabled = false;
+                newArrayBtn.disabled = false;
+                arraySizeSlider.disabled = false;
+                pauseSortBtn.disabled = true;
+                
+                return;
+            }
+            
+            // 如果内循环已完成
+            if (j >= array.length - i - 1) {
+                // 标记当前i位置的元素为已排序
+                const sortedIndices = Array.from({length: i + 1}, (_, k) => array.length - 1 - k);
+                renderArray([], sortedIndices);
+                
+                // 进入下一轮外循环
+                animationId = setTimeout(() => bubbleSort(i + 1, 0), sortSpeed);
+                return;
+            }
+            
+            // 比较相邻元素
+            comparisonCount++;
+            updateCounters();
+            
+            // 高亮显示正在比较的元素
+            renderArray([j, j + 1], Array.from({length: i}, (_, k) => array.length - 1 - k));
+            
+            animationId = setTimeout(() => {
+                if (isPaused) return;
+                
+                // 如果需要交换
+                if (array[j] > array[j + 1]) {
+                    // 交换元素
+                    [array[j], array[j + 1]] = [array[j + 1], array[j]];
+                    swapCount++;
+                    updateCounters();
+                    
+                    // 重新渲染以显示交换后的状态
+                    renderArray([j, j + 1], Array.from({length: i}, (_, k) => array.length - 1 - k));
+                    
+                    // 继续下一次比较
+                    animationId = setTimeout(() => bubbleSort(i, j + 1), sortSpeed);
+                } else {
+                    // 不需要交换，继续下一次比较
+                    bubbleSort(i, j + 1);
+                }
+            }, sortSpeed);
+        }
+        
+        // 更新计数器显示
+        function updateCounters() {
+            comparisonCountEl.textContent = comparisonCount;
+            swapCountEl.textContent = swapCount;
+        }
+    </script>
+</body>
+</html>
