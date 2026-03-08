@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>append demo</title>
+  <style>
+  p {
+    background: yellow;
+  }
+  </style>
+  
+</head>
+<body>
+ 
+<p id="p123">I would like to say: </p>
+ <button>click</button>
+<script>
+//点击button，在p标签中添加一个strong标签，内容是hello
+//不要使用jquery
+document.querySelector('button').addEventListener('click', function() {
+  var strong = document.createElement('strong');
+  strong.textContent = 'hello';
+  document.querySelector('p').appendChild(strong);
+});
+
+
+
+</script>
+</body>
+</html>
