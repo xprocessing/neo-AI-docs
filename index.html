@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>neo-AI-docs 文档浏览</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入marked.js用于Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 引入highlight.js用于代码高亮 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .scrollbar-slim {
+                scrollbar-width: thin;
+            }
+            .scrollbar-slim::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+            .scrollbar-slim::-webkit-scrollbar-thumb {
+                background-color: rgba(156, 163, 175, 0.5);
+                border-radius: 2px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4 px-6">
+        <h1 class="text-2xl font-bold text-gray-800">neo-AI-docs 文档中心</h1>
+    </header>
+    
+    <div class="flex flex-1 overflow-hidden">
+        <!-- 左侧目录栏 -->
+        <aside class="w-64 bg-white shadow-md overflow-y-auto scrollbar-slim border-r border-gray-200">
+            <div class="p-4">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="search-input"
+                        placeholder="搜索文档..." 
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                    <svg class="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <nav class="px-2 py-2">
+                <ul id="doc-tree" class="space-y-1">
+                    <!-- 目录将通过JS动态生成 -->
+                    <li class="text-gray-500 italic px-4 py-2">加载中...</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 右侧内容区 -->
+        <main class="flex-1 overflow-y-auto scrollbar-slim bg-gray-50 p-8">
+            <div id="content-container" class="max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-8 min-h-[calc(100vh-120px)]">
+                <div class="text-center text-gray-500 py-10">
+                    <h2 class="text-xl mb-4">请选择左侧文档</h2>
+                    <p>点击左侧目录中的文档，内容将显示在这里</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 配置marked.js，启用代码高亮
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        // 存储文档列表
+        let docFiles = [];
+
+        // 从PHP接口获取文档列表（接口和页面同目录）
+        async function fetchDocList() {
+            try {
+                const response = await fetch('doc_api.php?action=scan');
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    docFiles = result.data;
+                    initDocTree();
+                } else {
+                    document.getElementById('doc-tree').innerHTML = `
+                        <li class="text-red-500 px-4 py-2">加载失败: ${result.msg}</li>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('doc-tree').innerHTML = `
+                    <li class="text-red-500 px-4 py-2">网络错误: 无法连接到服务器</li>
+                `;
+                console.error('获取文档列表失败:', error);
+            }
+        }
+
+        // 初始化文档目录
+        function initDocTree() {
+            const docTree = document.getElementById('doc-tree');
+            docTree.innerHTML = '';
+
+            if (docFiles.length === 0) {
+                docTree.innerHTML = `<li class="text-gray-500 px-4 py-2">未找到Markdown文档</li>`;
+                return;
+            }
+
+            // 按分类分组
+            const categories = {};
+            docFiles.forEach(file => {
+                // 处理分类名称（去掉末尾的/）
+                const category = file.category.replace(/\/$/, '') || '根目录';
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(file);
+            });
+
+            // 生成目录HTML
+            Object.keys(categories).forEach(category => {
+                // 分类标题
+                const categoryLi = document.createElement('li');
+                categoryLi.className = 'font-medium text-gray-700 px-4 py-2 mt-4 first:mt-0';
+                categoryLi.textContent = category;
+                docTree.appendChild(categoryLi);
+
+                // 分类下的文件
+                categories[category].forEach(file => {
+                    const fileLi = document.createElement('li');
+                    fileLi.className = 'px-6 py-2 hover:bg-blue-50 rounded-md cursor-pointer text-gray-600 transition-colors';
+                    fileLi.dataset.path = file.path;
+                    fileLi.innerHTML = `
+                        <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        ${file.name}
+                    `;
+                    
+                    // 点击事件
+                    fileLi.addEventListener('click', () => {
+                        // 移除所有选中状态
+                        document.querySelectorAll('[data-path]').forEach(item => {
+                            item.classList.remove('bg-blue-100', 'text-blue-700', 'font-medium');
+                        });
+                        // 添加当前选中状态
+                        fileLi.classList.add('bg-blue-100', 'text-blue-700', 'font-medium');
+                        // 加载文档内容
+                        loadDocContent(file.path);
+                    });
+
+                    docTree.appendChild(fileLi);
+                });
+            });
+        }
+
+        // 从PHP接口加载Markdown文档内容
+        async function loadDocContent(filePath) {
+            const contentContainer = document.getElementById('content-container');
+            
+            try {
+                // 显示加载状态
+                contentContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-10">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-4"></div>
+                        <p>加载文档中...</p>
+                    </div>
+                `;
+
+                // 发起请求获取Markdown文件内容（接口和页面同目录）
+                const response = await fetch(`doc_api.php?action=read&path=${encodeURIComponent(filePath)}`);
+                const result = await response.json();
+                
+                if (result.code !== 200) {
+                    throw new Error(result.msg || '加载失败');
+                }
+
+                // 将Markdown转换为HTML
+                const htmlContent = marked.parse(result.data.content);
+                
+                // 渲染到页面
+                contentContainer.innerHTML = htmlContent;
+                
+                // 为所有代码块添加高亮
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
+            } catch (error) {
+                contentContainer.innerHTML = `
+                    <div class="text-center text-red-500 py-10">
+                        <h2 class="text-xl mb-2">加载失败</h2>
+                        <p class="mb-4">${error.message}</p>
+                        <p class="text-gray-500 text-sm">请检查文件是否存在或权限是否正确</p>
+                    </div>
+                `;
+                console.error('加载文档失败:', error);
+            }
+        }
+
+        // 搜索功能
+        function initSearch() {
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const docItems = document.querySelectorAll('[data-path]');
+                
+                docItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (searchTerm === '' || text.includes(searchTerm)) {
+                        item.classList.remove('hidden');
+                        // 显示父分类
+                        item.previousElementSibling?.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+
+                // 隐藏空分类
+                document.querySelectorAll('#doc-tree > li:not([data-path])').forEach(category => {
+                    let hasVisibleItems = false;
+                    let nextItem = category.nextElementSibling;
+                    
+                    // 检查分类下的所有文件项
+                    while (nextItem && nextItem.hasAttribute('data-path')) {
+                        if (!nextItem.classList.contains('hidden')) {
+                            hasVisibleItems = true;
+                            break;
+                        }
+                        nextItem = nextItem.nextElementSibling;
+                    }
+                    
+                    if (!hasVisibleItems && searchTerm !== '') {
+                        category.classList.add('hidden');
+                    } else {
+                        category.classList.remove('hidden');
+                    }
+                });
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDocList(); // 从同目录的PHP接口获取文档列表
+            initSearch();
+            
+            // 可选：自动加载第一个文档
+            // setTimeout(() => {
+            //     if (docFiles.length > 0) {
+            //         document.querySelector(`[data-path="${docFiles[0].path}"]`)?.click();
+            //     }
+            // }, 500);
+        });
+    </script>
+</body>
+</html>
