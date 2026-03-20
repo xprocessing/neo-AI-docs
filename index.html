@@ -285,17 +285,55 @@
             });
         }
 
+        // 根据URL hash加载文档
+        function loadDocFromHash() {
+            const hash = location.hash.slice(1); // 去掉 #
+            if (!hash) return;
+            
+            const filePath = decodeURIComponent(hash);
+            
+            // 检查文件是否在列表中
+            const fileExists = docFiles.some(f => f.path === filePath);
+            if (!fileExists) {
+                console.warn('文档不存在:', filePath);
+                return;
+            }
+            
+            // 展开对应的分类
+            const category = docFiles.find(f => f.path === filePath)?.category.replace(/\/$/, '') || '根目录';
+            const categoryLi = document.querySelector(`[data-category="${category}"]`);
+            if (categoryLi && categoryLi.dataset.expanded !== 'true') {
+                categoryLi.click(); // 触发展开
+            }
+            
+            // 设置选中状态
+            document.querySelectorAll('[data-path]').forEach(item => {
+                item.classList.remove('bg-blue-100', 'text-blue-700', 'font-medium');
+            });
+            const fileLi = document.querySelector(`[data-path="${filePath}"]`);
+            if (fileLi) {
+                fileLi.classList.add('bg-blue-100', 'text-blue-700', 'font-medium');
+            }
+            
+            // 加载文档内容
+            loadDocContent(filePath);
+        }
+
+        // 监听hash变化
+        function initHashListener() {
+            window.addEventListener('hashchange', loadDocFromHash);
+        }
+
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', () => {
             fetchDocList(); // 从同目录的PHP接口获取文档列表
             initSearch();
+            initHashListener();
             
-            // 可选：自动加载第一个文档
-            // setTimeout(() => {
-            //     if (docFiles.length > 0) {
-            //         document.querySelector(`[data-path="${docFiles[0].path}"]`)?.click();
-            //     }
-            // }, 500);
+            // 延迟处理hash，等待文档列表加载完成
+            setTimeout(() => {
+                loadDocFromHash();
+            }, 100);
         });
     </script>
 </body>
