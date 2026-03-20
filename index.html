@@ -132,17 +132,48 @@
 
             // 生成目录HTML
             Object.keys(categories).forEach(category => {
-                // 分类标题
+                // 分类标题（可折叠）
                 const categoryLi = document.createElement('li');
-                categoryLi.className = 'font-medium text-gray-700 px-4 py-2 mt-4 first:mt-0';
-                categoryLi.textContent = category;
+                categoryLi.className = 'font-medium text-gray-700 px-4 py-2 mt-4 first:mt-0 cursor-pointer hover:bg-gray-100 rounded-md flex items-center select-none transition-colors';
+                categoryLi.dataset.category = category;
+                categoryLi.innerHTML = `
+                    <svg class="w-4 h-4 mr-2 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    ${category}
+                `;
+                
+                // 点击折叠/展开
+                categoryLi.addEventListener('click', () => {
+                    const isExpanded = categoryLi.dataset.expanded === 'true';
+                    const icon = categoryLi.querySelector('svg');
+                    
+                    if (isExpanded) {
+                        // 折叠
+                        categoryLi.dataset.expanded = 'false';
+                        icon.classList.remove('rotate-90');
+                    } else {
+                        // 展开
+                        categoryLi.dataset.expanded = 'true';
+                        icon.classList.add('rotate-90');
+                    }
+                    
+                    // 切换该分类下所有文件的显示
+                    let nextItem = categoryLi.nextElementSibling;
+                    while (nextItem && nextItem.dataset.path && nextItem.dataset.category === category) {
+                        nextItem.classList.toggle('hidden', isExpanded);
+                        nextItem = nextItem.nextElementSibling;
+                    }
+                });
+                
                 docTree.appendChild(categoryLi);
 
-                // 分类下的文件
+                // 分类下的文件（默认隐藏）
                 categories[category].forEach(file => {
                     const fileLi = document.createElement('li');
-                    fileLi.className = 'px-6 py-2 hover:bg-blue-50 rounded-md cursor-pointer text-gray-600 transition-colors';
+                    fileLi.className = 'px-6 py-2 hover:bg-blue-50 rounded-md cursor-pointer text-gray-600 transition-colors hidden';
                     fileLi.dataset.path = file.path;
+                    fileLi.dataset.category = category;
                     fileLi.innerHTML = `
                         <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -151,7 +182,8 @@
                     `;
                     
                     // 点击事件
-                    fileLi.addEventListener('click', () => {
+                    fileLi.addEventListener('click', (e) => {
+                        e.stopPropagation();
                         // 移除所有选中状态
                         document.querySelectorAll('[data-path]').forEach(item => {
                             item.classList.remove('bg-blue-100', 'text-blue-700', 'font-medium');
@@ -218,35 +250,42 @@
                 const searchTerm = e.target.value.toLowerCase().trim();
                 const docItems = document.querySelectorAll('[data-path]');
                 
+                if (searchTerm === '') {
+                    // 清空搜索时，恢复默认折叠状态
+                    document.querySelectorAll('[data-category]').forEach(categoryLi => {
+                        categoryLi.dataset.expanded = 'false';
+                        categoryLi.querySelector('svg').classList.remove('rotate-90');
+                        categoryLi.classList.remove('hidden');
+                    });
+                    docItems.forEach(item => {
+                        item.classList.add('hidden');
+                    });
+                    return;
+                }
+                
+                // 记录哪些分类需要展开
+                const categoriesToExpand = new Set();
+                
                 docItems.forEach(item => {
                     const text = item.textContent.toLowerCase();
-                    if (searchTerm === '' || text.includes(searchTerm)) {
+                    if (text.includes(searchTerm)) {
                         item.classList.remove('hidden');
-                        // 显示父分类
-                        item.previousElementSibling?.classList.remove('hidden');
+                        // 记录需要展开的分类
+                        categoriesToExpand.add(item.dataset.category);
                     } else {
                         item.classList.add('hidden');
                     }
                 });
 
-                // 隐藏空分类
-                document.querySelectorAll('#doc-tree > li:not([data-path])').forEach(category => {
-                    let hasVisibleItems = false;
-                    let nextItem = category.nextElementSibling;
-                    
-                    // 检查分类下的所有文件项
-                    while (nextItem && nextItem.hasAttribute('data-path')) {
-                        if (!nextItem.classList.contains('hidden')) {
-                            hasVisibleItems = true;
-                            break;
-                        }
-                        nextItem = nextItem.nextElementSibling;
-                    }
-                    
-                    if (!hasVisibleItems && searchTerm !== '') {
-                        category.classList.add('hidden');
+                // 展开包含匹配项的分类
+                document.querySelectorAll('[data-category]').forEach(categoryLi => {
+                    const category = categoryLi.dataset.category;
+                    if (categoriesToExpand.has(category)) {
+                        categoryLi.dataset.expanded = 'true';
+                        categoryLi.querySelector('svg').classList.add('rotate-90');
+                        categoryLi.classList.remove('hidden');
                     } else {
-                        category.classList.remove('hidden');
+                        categoryLi.classList.add('hidden');
                     }
                 });
             });
