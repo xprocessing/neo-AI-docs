@@ -184,14 +184,8 @@
                     // 点击事件
                     fileLi.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        // 移除所有选中状态
-                        document.querySelectorAll('[data-path]').forEach(item => {
-                            item.classList.remove('bg-blue-100', 'text-blue-700', 'font-medium');
-                        });
-                        // 添加当前选中状态
-                        fileLi.classList.add('bg-blue-100', 'text-blue-700', 'font-medium');
-                        // 加载文档内容
-                        loadDocContent(file.path);
+                        // 更新URL hash
+                        location.hash = encodeURIComponent(file.path);
                     });
 
                     docTree.appendChild(fileLi);
