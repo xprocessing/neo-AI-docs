@@ -29,6 +29,133 @@
                 border-radius: 2px;
             }
         }
+        /* Markdown 内容样式 */
+        #content-container h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        #content-container h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 1.25rem 0 0.75rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        #content-container h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 1rem 0 0.5rem;
+        }
+        #content-container h4, #content-container h5, #content-container h6 {
+            font-weight: 600;
+            color: #4b5563;
+            margin: 0.75rem 0 0.5rem;
+        }
+        #content-container p {
+            margin: 0.75rem 0;
+            line-height: 1.75;
+            color: #374151;
+        }
+        #content-container a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        #content-container a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        #content-container ul, #content-container ol {
+            margin: 0.75rem 0;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        #content-container li {
+            margin: 0.35rem 0;
+            line-height: 1.6;
+        }
+        #content-container ul li {
+            list-style-type: disc;
+        }
+        #content-container ol li {
+            list-style-type: decimal;
+        }
+        #content-container blockquote {
+            margin: 1rem 0;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid #3b82f6;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+        #content-container blockquote p {
+            margin: 0;
+        }
+        #content-container code:not(pre code) {
+            background-color: #f1f5f9;
+            color: #c026d3;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+        #content-container pre {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #1e293b;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        #content-container pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-size: 0.875rem;
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+        #content-container table {
+            width: 100%;
+            margin: 1rem 0;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        #content-container th, #content-container td {
+            padding: 0.625rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        #content-container th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        #content-container tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        #content-container hr {
+            margin: 1.5rem 0;
+            border: none;
+            border-top: 1px solid #e5e7eb;
+        }
+        #content-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin: 0.75rem 0;
+        }
+        #content-container strong {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        #content-container em {
+            font-style: italic;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
