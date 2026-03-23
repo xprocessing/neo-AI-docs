@@ -1,0 +1,3 @@
+1. 使用https://youtubemultidownloader.net/channel.html  获取频道所有视频地址
+
+2.使用批量下载软件
